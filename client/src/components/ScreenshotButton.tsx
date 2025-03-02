@@ -1,52 +1,24 @@
-import { useState } from "react";
 
-const ScreenshotButton = () => {
-  const [screenshot, setScreenshot] = useState<string | null>(null);
-
-  // useEffect(() => {
-  //   // Load the last saved screenshot from storage
-  //   chrome.storage.local.get("screenshot", (data) => {
-  //     if (data.screenshot) {
-  //       setScreenshot(data.screenshot);
-  //     }
-  //   });
-  // }, []);
-
-  async function logResponse(data: object) {
-    // Query for the active tab
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    chrome.scripting.executeScript<object[], void>({
-      target: { tabId: tab.id! },
-      args: [data],
-      func: (data) => {
-        console.log(data);
-      }
-    })
-  }
-
+const ScreenshotButton = ({setScreenshotCaptured} : {setScreenshotCaptured: (uploaded: boolean) => void}) => {
+ 
   const takeScreenshot = async () => {
     // Send a message to the background script to capture a screenshot
     chrome.runtime.sendMessage({ action: "capture_screenshot" }, (response) => {
       if (response && response.success) {
-        setScreenshot(response.success);
-
-        logResponse(response);
+        console.log(response);
         
-        chrome.storage.local.set({ screenshot: response.screenshot });
+        setScreenshotCaptured(response.success);
       } else {
-        console.error("Failed to capture screenshot");
+        console.error("Error:", response);
       }
     });
   };
 
   return (
-    <div style={{ padding: 20, textAlign: "center", width: 250 }}>
-      <h3>Screenshot Extension</h3>
-      <button onClick={takeScreenshot}>Take Screenshot</button>
-      {screenshot && (
-        // <img src={screenshot} alt="Screenshot" style={{ width: "100%", marginTop: 10 }} />
-        <p>Screenshot captured</p>
-      )}
+    <div className="w-full bg-gray-300 overflow-hidden rounded-lg h-[200px]">
+      <button onClick={takeScreenshot} className="w-full h-full grid place-content-center cursor-pointer">
+        <img src="../assets/react.svg" alt="camera vector" /> 
+      </button>
     </div>
   );
 };
