@@ -1,15 +1,39 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "capture_screenshot") {
         console.log("Capturing screenshot...");
-
-        chrome.tabs.captureVisibleTab({ format: "png" }, (imageData) => {
+        chrome.tabs.captureVisibleTab(null, { format: "png" }, async (imageData) => {
+            if (chrome.runtime.lastError) {
+                console.error("Error capturing screenshot:", chrome.runtime.lastError.message);
+                sendResponse({ success: false, error: chrome.runtime.lastError.message });
+                return;
+            }
             if (!imageData) {
+                console.error("Failed to capture screenshot: No image data returned.");
                 sendResponse({ success: false, error: "Failed to capture screenshot" });
                 return;
             }
-            sendResponse({ success: true, screenshot: imageData });
+            
+            ////
+
+            // let tabUrl;
+
+            const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+            const tabName = extractTabName(tab.url);
+            console.log("Tab url: ", tabName);
+            
+            chrome.scripting.executeScript({
+                args: [tab.url, tabName],
+                target: { tabId: tab.id },
+                func: (tabUrl, tabName) => {
+                    console.log("Tab url: ", tabUrl);
+                    console.log("Tab name: ", tabName);
+                },
+            });
+        
+            console.log("Screenshot captured successfully.");
+            sendResponse({ success: true, screenshot: imageData, tabName: tabName, tabUrl: tab.url});
         });
-        return true;
+        return true; // Keep the message channel open for async response
     }
 
     if (message.action === "upload_screenshot") {
@@ -51,3 +75,8 @@ function captureScreenshot() {
     });
 }
 
+function extractTabName(url){
+    // use this as refference https://www.google.com
+    // this function will return google
+    return new URL(url).hostname.split('.')[1];
+}

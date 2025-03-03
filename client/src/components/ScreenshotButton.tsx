@@ -1,13 +1,31 @@
+import { ScreenshotResponse } from "../types";
 
-const ScreenshotButton = ({setScreenshotCaptured} : {setScreenshotCaptured: (uploaded: boolean) => void}) => {
+interface ScreenshotButtonProps { 
+  setScreenshotCaptured: (screenshot: ScreenshotResponse) => void;
+}
+
+const ScreenshotButton = ({ setScreenshotCaptured }: ScreenshotButtonProps ) => {
  
-  const takeScreenshot = async () => {
+  const takeScreenshot = () => {
     // Send a message to the background script to capture a screenshot
-    chrome.runtime.sendMessage({ action: "capture_screenshot" }, (response) => {
+    chrome.runtime.sendMessage({ action: "capture_screenshot" }, async (response) => {
+      if (chrome.runtime.lastError) {
+        console.error("Error sending message:", chrome.runtime.lastError.message);
+        return;
+      }
       if (response && response.success) {
-        console.log(response);
+        const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+        chrome.scripting.executeScript({
+          args: [response],
+          target: { tabId: tab.id! },
+          func: (response) => {
+            console.log("Response received:", response);
+          },
+        });
         
-        setScreenshotCaptured(response.success);
+        setScreenshotCaptured({
+          img: response.screenshot, success: true, tabUrl: response.tabUrl, tabName: response.tabName
+        });
       } else {
         console.error("Error:", response);
       }
