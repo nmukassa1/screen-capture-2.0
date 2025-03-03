@@ -76,7 +76,12 @@ function captureScreenshot() {
 }
 
 function extractTabName(url){
-    // use this as refference https://www.google.com
-    // this function will return google
-    return new URL(url).hostname.split('.')[1];
+    try {
+    let hostname = new URL(url).hostname;
+    hostname = hostname.replace(/^www\./, ''); // Remove 'www.' if present
+    return hostname;
+  } catch (error) {
+    console.error("Invalid URL:", url);
+    return url; // Return the original URL if parsing fails
+  }
 }

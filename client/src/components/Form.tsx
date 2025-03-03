@@ -15,11 +15,20 @@ function Form({ setScreenshotUploaded }: FormProps) {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id! },
+      args: [formData],
+      func: (formData) => {
+        console.log('Form Submitted: ', formData);
+        
+      },
+    });
     
     console.log("Form Submitted:", formData);
     setScreenshotUploaded(true);
   }
-  
+
   return (
     <div>
       <ImagePreview />
