@@ -38,7 +38,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     if (message.action === "upload_screenshot") {
         console.log("Uploading screenshot...");
-        uploadScreenshot(message.screenshot)
+        uploadScreenshot(message.data.img)
             .then(sendResponse) // Properly handle the async response
             .catch((err) => sendResponse({ success: false, error: err.message }));
 

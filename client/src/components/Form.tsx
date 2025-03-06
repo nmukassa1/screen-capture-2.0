@@ -15,18 +15,38 @@ function Form({ setScreenshotUploaded }: FormProps) {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    chrome.scripting.executeScript({
-      target: { tabId: tab.id! },
-      args: [formData],
-      func: (formData) => {
-        console.log('Form Submitted: ', formData);
+    // const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    // chrome.scripting.executeScript({
+    //   target: { tabId: tab.id! },
+    //   args: [formData],
+    //   func: (formData) => {
+    //     console.log('Form Submitted: ', formData);
         
-      },
+    //   },
+    // });
+
+    chrome.runtime.sendMessage({ action: "upload_screenshot", data: formData }, async (response) => {
+      if (chrome.runtime.lastError) {
+        console.error("Error sending message:", chrome.runtime.lastError.message);
+        return;
+      }
+      if (response && response.success) {
+        const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+        chrome.scripting.executeScript({
+          args: [response],
+          target: { tabId: tab.id! },
+          func: (response) => {
+            console.log("Form response:", response);
+          },
+        });
+        setScreenshotUploaded(true);
+      } else {
+        console.error("Error:", response);
+      }
     });
     
+    // For development purposes
     console.log("Form Submitted:", formData);
-    setScreenshotUploaded(true);
   }
 
   return (

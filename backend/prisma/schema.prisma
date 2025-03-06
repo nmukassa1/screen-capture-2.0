@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id          String       @id @default(uuid())
+  email       String       @unique
+  name        String
+  screenshots Screenshot[]
+  tags        Tag[]
+}
+
+model Screenshot {
+  id       Int  @id @default(autoincrement())
+  img      String
+  siteName String
+  siteUrl  String
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags     ScreenshotTag[]
+}
+
+model Tag {
+  id     Int  @id @default(autoincrement())
+  name   String
+  userId String
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  screenshots ScreenshotTag[]
+}
+
+model ScreenshotTag {
+  screenshotId Int
+  tagId        Int
+  screenshot   Screenshot @relation(fields: [screenshotId], references: [id], onDelete: Cascade)
+  tag          Tag        @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([screenshotId, tagId]) // Composite primary key
+}

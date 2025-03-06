@@ -3,6 +3,8 @@ import cors from 'cors';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs-extra';
 import path from 'path';
+import tagRoutes from './routes/tagRoutes';
+import screenshotRoutes from './routes/screenshotRoutes';
 
 const PORT = 3000;
 
@@ -15,11 +17,14 @@ fs.ensureDirSync(UPLOAD_DIR);
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
-app.use(cors());
+app.use(cors({ origin: '*' }));
 
 app.get('/', (req, res) => {
     res.json('Hello World');
 });
+
+app.use("/tags", tagRoutes);
+app.use("/screenshots", screenshotRoutes);
 
 app.post('/api/screenshot', (req: Request, res: Response) => {
     const { screenshot } = req.body;
@@ -29,10 +34,11 @@ app.post('/api/screenshot', (req: Request, res: Response) => {
         return 
     }
    
-    console.log(convertImageToFile(screenshot));
+    const result = convertImageToFile(screenshot);
+    console.log(result);
     
 
-    res.status(200).json('Screenshot received');
+    res.status(200).json({ success: true });
     return
 })
 
