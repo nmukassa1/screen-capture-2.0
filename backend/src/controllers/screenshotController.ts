@@ -1,29 +1,15 @@
 import { Request, Response } from "express";
 import * as screenshotService from "../services/screenshotService";
 import prisma from "../prisma";
+import { uploadScreenshotSchema } from "../validation";
+import { z } from "zod";
 
 export const uploadScreenshot = async (req: Request, res: Response) => {
   try {
-    const { siteName, siteUrl, tagIds, userId } = req.body;
+    // Validate request body
+    const parsedData = uploadScreenshotSchema.parse(req.body);
+    const { siteName, siteUrl, tagIds, userId } = parsedData;
     const img = "image.jpg"; // Temporary placeholder
-
-    if (!img) {
-      res.status(400).json({ error: "Image is required" });
-    }
-
-    // Ensure tagIds is an array of numbers
-    let parsedTagIds: number[] = [];
-    if (tagIds) {
-      if (typeof tagIds === "string") {
-        try {
-          parsedTagIds = JSON.parse(tagIds).map(Number);
-        } catch {
-          res.status(400).json({ error: "Invalid tagIds format" });
-        }
-      } else if (Array.isArray(tagIds)) {
-        parsedTagIds = tagIds.map(Number);
-      }
-    }
 
     // Upload the screenshot
     const screenshot = await screenshotService.uploadScreenshot(
@@ -34,9 +20,9 @@ export const uploadScreenshot = async (req: Request, res: Response) => {
     );
 
     // Insert screenshot-tag relationships
-    if (parsedTagIds.length > 0) {
+    if (tagIds && tagIds.length > 0) {
       await prisma.screenshotTag.createMany({
-        data: parsedTagIds.map((tagId) => ({
+        data: tagIds.map((tagId: number) => ({
           screenshotId: screenshot.id,
           tagId,
         })),
@@ -46,8 +32,11 @@ export const uploadScreenshot = async (req: Request, res: Response) => {
     // Return the updated screenshot with relationships
     const updatedScreenshot = await screenshotService.getScreenshotById(userId, screenshot.id);
     res.status(201).json(updatedScreenshot);
-    
+    return
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ errors: error.errors });
+    }
     console.error("Error uploading screenshot:", error);
     res.status(500).json({ errorMessage: "Failed to upload screenshot", error });
   }
