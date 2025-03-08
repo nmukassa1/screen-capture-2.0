@@ -21,5 +21,5 @@ export const uploadScreenshotSchema = z.object({
 
 export const createTagSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }), // Ensuring name is a non-empty string
-  user: z.string().min(1, { message: 'User is required' })  // Ensuring user is a non-empty string
+  userId: z.string().min(1, { message: 'User is required' })  // Ensuring user is a non-empty string
 });

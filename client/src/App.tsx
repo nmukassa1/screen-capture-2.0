@@ -10,24 +10,7 @@ function App() {
 
   const [screenshotUploaded, setScreenshotUploaded] = useState<boolean>(false);
 
-  const [screenshotCaptured, setScreenshotCaptured] = useState<ScreenshotResponse>({ success: false});
-
-  // useEffect(() => {
-  //   async function handleResponse() {
-  //     const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-  //     chrome.scripting.executeScript({
-  //       args: [screenshotCaptured],
-  //       target: { tabId: tab.id! },
-  //       func: (response) => {
-  //         console.log("Response received in App:", response);
-  //       },
-  //     });
-  //   }
-  //   if (screenshotCaptured.success) {
-  //     handleResponse();
-  //   }
-    
-  // }, [screenshotCaptured]);
+  const [screenshotCaptured, setScreenshotCaptured] = useState<ScreenshotResponse>({ success: true});
 
   return (
     <FormProvider screenshotResponse={screenshotCaptured} >

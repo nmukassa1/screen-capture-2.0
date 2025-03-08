@@ -1,4 +1,8 @@
-// import { useFormContext } from "../context/FormContext";
+import { useFormContext } from "../context/FormContext";
+// import { useEffect, useState } from "react";
+// import { api } from "../api/api";
+import { Tag } from "../types";
+import { useTagsContext } from "../context/TagsContext";
 
 // const tags = [
 //   "E-Commerce",
@@ -12,31 +16,48 @@
 // ];
 
 export function TagSelect() {
-  // const { formData, setFormData } = useFormContext();
+  const { formData, setFormData } = useFormContext();
+  const { tags } = useTagsContext();
+  // const [tags, setTags] = useState<Tag[]>([]);
+  // useEffect(() => {
+    
+  //     async function getTags() {
+  //       const response = await api.get("/tags/1");
+  //       console.log("Tags:", response.data);
+  //       setTags(response.data);
+  //     }
 
-  // // if (formData.newTag && formData.newTag?.length > 0 ) return null; // Hide if newTag is used
+  //     getTags();
+   
+  // }, [])
 
-  // return (
-  //   <div className="flex items-center gap-2 mt-4">
-  //     <select
-  //       name="tag"
-  //       className="border-2 rounded-md px-4"
-  //       value={formData.tag}
-  //       onChange={(e) => setFormData({ tag: e.target.value })}
-  //     >
-  //       {tags.map((tag) => (
-  //         <option key={tag} value={tag}>
-  //           {tag}
-  //         </option>
-  //       ))}
-  //     </select>
+  if (tags && tags.length === 0 ) return null; 
 
-  //     <button
-  //       type="submit"
-  //       className="rounded-md bg-gray-300 cursor-pointer grow px-4"
-  //     >
-  //       Save
-  //     </button>
-  //   </div>
-  // );
+  return (
+    <>
+      {tags.map((tag: Tag) => (
+        <div key={tag.id} className="flex items-center gap-2 mt-4">
+          <input
+            type="checkbox"
+            name="tagIds"
+            value={tag.id}
+            id={tag.id.toString()}
+            // checked={formData.tagIds?.includes(tag.id)}
+            onChange={(e) => {
+              if (e.target.checked) {
+                setFormData({
+                  tagIds: [...(formData.tagIds || []), tag.id],
+                });
+              } else {
+                setFormData({
+                  tagIds: formData.tagIds?.filter((id) => id !== tag.id),
+                });
+              }
+            }}
+          />
+          <label htmlFor={tag.id.toString()}>{tag.name}</label>
+        </div>
+      ))}
+    </>
+  );
 }

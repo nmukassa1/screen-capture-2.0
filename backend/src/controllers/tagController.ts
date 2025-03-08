@@ -4,6 +4,11 @@ import { createTagSchema } from "../validation";
 
 export const getAllTags = async (req: Request, res: Response) => {
   const { user } = req.params;
+
+  if(!user) {
+    res.status(400).json({ error: "User not found" });
+    return;
+  }
   
   try {
     const tags = await tagService.getAllTags(user);
@@ -40,15 +45,15 @@ export const createTag = async (req: Request, res: Response) => {
       return
     }
     
-    const { name, user } = parsedBody.data;
+    const { name, userId } = parsedBody.data;
 
-    const tagExist = await tagService.getTagByName(user, name);
+    const tagExist = await tagService.getTagByName(userId, name);
     if (tagExist) {
       res.status(400).json({ error: 'Tag already exists' });
       return;
     }
 
-    const tag = await tagService.createTag(user, name);
+    const tag = await tagService.createTag(userId, name);
     res.status(201).json(tag);
     // res.status(201).json({ message: 'Tag created' });
   } catch (error) {

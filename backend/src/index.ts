@@ -46,13 +46,7 @@ app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
-async function convertImageForStorage(image: string) {
-    const base64Data = image.replace(/^data:image\/png;base64,/, "");
-    const buffer = Buffer.from(base64Data, "base64");
-    console.log(buffer);
-    
-    return buffer;
-}
+
 
 interface ConvertImageResult {
     success?: boolean;
