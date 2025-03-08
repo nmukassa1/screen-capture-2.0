@@ -79,3 +79,13 @@ export const getScreenshotsByTag = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to fetch screenshots" });
   }
 }
+
+export const getScreenshotById = async (req: Request, res: Response) => {
+  const { user, screenshotId } = req.params;
+  try {
+    const screenshot = await screenshotService.getScreenshotById(user, parseInt(screenshotId));
+    res.json(screenshot);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch screenshot" });
+  }
+}

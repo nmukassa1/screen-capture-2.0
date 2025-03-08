@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as tagService from "../services/tagService";
+import { createTagSchema } from "../validation";
 
 export const getAllTags = async (req: Request, res: Response) => {
   const { user } = req.params;
@@ -27,16 +28,31 @@ export const getTagByName = async (req: Request, res: Response) => {
 
 export const createTag = async (req: Request, res: Response) => {
   try {
-    const { name, user } = req.body;
-    const tagExist = await tagService.getTagByName(user, name);
-    if (tagExist) {
-      res.status(400).json({ error: "Tag already exists" });
+    // Validate the request body using the Zod schema
+    const parsedBody = createTagSchema.safeParse(req.body);
+
+    if (!parsedBody.success) {
+      // If validation fails, send a response with the validation error details
+      res.status(400).json({
+        error: 'Validation failed',
+        issues: parsedBody.error.errors,
+      });
       return
     }
+    
+    const { name, user } = parsedBody.data;
+
+    const tagExist = await tagService.getTagByName(user, name);
+    if (tagExist) {
+      res.status(400).json({ error: 'Tag already exists' });
+      return;
+    }
+
     const tag = await tagService.createTag(user, name);
     res.status(201).json(tag);
+    // res.status(201).json({ message: 'Tag created' });
   } catch (error) {
-    res.status(500).json({ error: "Failed to create tag" });
+    res.status(500).json({ error: 'Failed to create tag' });
   }
 };
 
