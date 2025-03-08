@@ -8,7 +8,7 @@ interface FormProviderProps {
 
 interface FormContextType {
   formData: FormDataType;
-  setFormData: (update: Partial<FormDataType>) => void;
+  // setFormData: (update: Partial<FormDataType>) => void;
 }
 
 const FormContext = createContext<FormContextType | undefined>(undefined);
@@ -19,40 +19,42 @@ export function FormProvider({ children, screenshotResponse }: FormProviderProps
   
   const [formData, setFormDataState] = useState<FormDataType>({
     ...Object.fromEntries(Object.entries(screenshotResponse).filter(([key]) => key !== "success")),
-    tag: "E-Commerce",
+    tagIds: [7],
+    userId: "1",
   });
 
   useEffect(() => {
+    // Remove success key from screenshotResponse submited via chrome api
     setFormDataState((prev) => ({
       ...prev,
       ...Object.fromEntries(Object.entries(screenshotResponse).filter(([key]) => key !== "success")),
     }));
   }, [screenshotResponse]);
 
-  const setFormData = (update: Partial<FormDataType>) => {
-    setFormDataState((prev) => {
-      const updatedForm = { ...prev, ...update };
-      console.log(update.newTag?.trim().length);
+  // const setFormData = (update: Partial<FormDataType>) => {
+  //   setFormDataState((prev) => {
+  //     const updatedForm = { ...prev, ...update };
+  //     console.log(update.newTag?.trim().length);
       
-      if (update.newTag !== undefined) {
-        if (update.newTag.length > 0) {
-            // If newTag is set, remove tag
-            delete updatedForm.tag;
-        } else {
-            delete updatedForm.newTag;
-            updatedForm.tag = prev.tag || "E-Commerce"; // Restore default tag if empty
-        }
-      }
+  //     if (update.newTag !== undefined) {
+  //       if (update.newTag.length > 0) {
+  //           // If newTag is set, remove tag
+  //           delete updatedForm.tag;
+  //       } else {
+  //           delete updatedForm.newTag;
+  //           updatedForm.tag = prev.tag || "E-Commerce"; // Restore default tag if empty
+  //       }
+  //     }
 
 
-      console.log("Updated Form Data:", updatedForm);
+  //     console.log("Updated Form Data:", updatedForm);
       
-      return updatedForm;
-    });
-  };
+  //     return updatedForm;
+  //   });
+  // };
 
   return (
-    <FormContext.Provider value={{ formData, setFormData }}>
+    <FormContext.Provider value={{ formData }}>
       {children}
     </FormContext.Provider>
   );

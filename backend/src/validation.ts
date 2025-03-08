@@ -16,6 +16,7 @@ export const uploadScreenshotSchema = z.object({
       }),
     ])
     .optional(),
+  image: z.string().min(1, "Image is required"),
 });
 
 export const createTagSchema = z.object({

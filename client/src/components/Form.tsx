@@ -1,6 +1,6 @@
 import { ImagePreview } from "./ImagePreview";
-import { TagInput } from "./TagInput";
-import { TagSelect } from "./TagSelect";
+// import { TagInput } from "./TagInput";
+// import { TagSelect } from "./TagSelect";
 import { useFormContext } from "../context/FormContext";
 
 interface FormProps {
@@ -15,15 +15,6 @@ function Form({ setScreenshotUploaded }: FormProps) {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    // chrome.scripting.executeScript({
-    //   target: { tabId: tab.id! },
-    //   args: [formData],
-    //   func: (formData) => {
-    //     console.log('Form Submitted: ', formData);
-        
-    //   },
-    // });
 
     chrome.runtime.sendMessage({ action: "upload_screenshot", data: formData }, async (response) => {
       if (chrome.runtime.lastError) {
@@ -52,10 +43,11 @@ function Form({ setScreenshotUploaded }: FormProps) {
   return (
     <div>
       <ImagePreview />
-      <h2 className="font-bold text-lg">{formData.tabName || "Example"}</h2>
+      <h2 className="font-bold text-lg">{formData.siteName || "Example"}</h2>
       <form onSubmit={handleSubmit}>
-        <TagInput />
-        <TagSelect />
+        {/* <TagInput /> */}
+        {/* <TagSelect /> */}
+        <button type="submit">submit</button>
       </form>
     </div>
   );

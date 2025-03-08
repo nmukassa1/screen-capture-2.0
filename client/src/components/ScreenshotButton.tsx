@@ -24,7 +24,7 @@ const ScreenshotButton = ({ setScreenshotCaptured }: ScreenshotButtonProps ) => 
         });
         
         setScreenshotCaptured({
-          img: response.screenshot, success: true, tabUrl: response.tabUrl, tabName: response.tabName
+          image: response.screenshot, success: true, siteUrl: response.siteUrl, siteName: response.siteName
         });
       } else {
         console.error("Error:", response);

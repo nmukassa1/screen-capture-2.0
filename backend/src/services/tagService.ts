@@ -1,6 +1,6 @@
 import prisma from "../prisma";
 
-export const getAllTags = async (userId: string) => {
+export const getAllTags = async (userId: string): Promise<{ id: number; name: string, userId: string }[] | null> => {
   return await prisma.tag.findMany({ where: { userId } });
 };
 
@@ -17,3 +17,7 @@ export const deleteTag = async (userId: string, tagId: number) => {
     where: { id: tagId, userId },
   });
 };
+
+export const getTagByIds = async (userId: string, tagIds: number[]) => {
+  return await prisma.tag.findMany({ where: { id: {in: tagIds}, userId }, select: { id: true} });
+}

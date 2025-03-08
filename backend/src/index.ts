@@ -49,6 +49,8 @@ app.listen(PORT, () => {
 async function convertImageForStorage(image: string) {
     const base64Data = image.replace(/^data:image\/png;base64,/, "");
     const buffer = Buffer.from(base64Data, "base64");
+    console.log(buffer);
+    
     return buffer;
 }
 
