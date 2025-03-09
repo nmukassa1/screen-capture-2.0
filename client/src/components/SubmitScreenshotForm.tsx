@@ -6,10 +6,11 @@ interface SubmitScreenshotFormProps {
   }
 
 function SubmitScreenshotForm( { setScreenshotUploaded }: SubmitScreenshotFormProps ) {
-    const { formData } = useFormContext();
+    const { formData, setLoading } = useFormContext();
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        setLoading(true);
     
         chrome.runtime.sendMessage({ action: "upload_screenshot", data: formData }, async (response) => {
           if (chrome.runtime.lastError) {
@@ -31,6 +32,7 @@ function SubmitScreenshotForm( { setScreenshotUploaded }: SubmitScreenshotFormPr
           }
         });
         
+        setLoading(false);
         // For development purposes
         console.log("Form Submitted:", formData);
       }
@@ -38,13 +40,10 @@ function SubmitScreenshotForm( { setScreenshotUploaded }: SubmitScreenshotFormPr
 
     return ( 
         <form onSubmit={handleSubmit}>
-            <TagSelect />
-        <button
-          type="submit"
-          className="rounded-md bg-gray-300 cursor-pointer py-4 w-full mt-4"
-        >
-          Save
-        </button>
+          <TagSelect />
+          <button
+            type="submit"
+            className="rounded-md bg-gray-300 cursor-pointer py-4 w-full mt-4">Save</button>
         </form>
      );
 }

@@ -4,7 +4,7 @@ export function ImagePreview() {
   const { formData } = useFormContext();
 
   return (
-    <div className="h-[200px] overflow-hidden mb-4">
+    <div className=" overflow-hidden mb-2 shadow-md overflow-hidden rounded-md">
       {formData.image ? (
         <img src={formData.image} alt="Captured screenshot" className="object-fill" />
       ) : (

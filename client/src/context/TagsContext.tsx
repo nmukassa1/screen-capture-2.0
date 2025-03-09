@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { Tag } from "../types";
 import { api } from "../api/api";
+import { useUserContext } from "./UserContext";
 
 interface TagsContextType{
     tags: Tag[];
@@ -11,10 +12,11 @@ const tagContext = createContext<TagsContextType | undefined>(undefined);
 
 export const TagsProvider = ({children} : {children: ReactNode}) => {
     const [tags, setTags] = useState<Tag[]>([]);
+    const {user} = useUserContext();
 
     useEffect(() => {
         async function getTags() {
-          const response = await api.get("/tags/1");
+          const response = await api.get("/tags/" + user?.id);
           console.log("Tags:", response.data);
           setTags(response.data);
         }

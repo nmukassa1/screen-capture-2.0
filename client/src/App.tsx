@@ -1,35 +1,56 @@
-import {  useState } from "react";
-import Header from "./components/Header";
-import ScreenshotButton from "./components/ScreenshotButton";
-import SuccessfullUpload from "./components/SuccessfulUpload";
-import Form from "./components/Form";
-import { ScreenshotResponse } from "./types";
-import { FormProvider } from "./context/FormContext";
+import { useEffect, useState } from "react";
+import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import MainApplication from "./page/MainApplication";
+import Login from "./page/Login";
+import { supabase } from "./supabase";
+import { useUserContext } from "./context/UserContext";
 
 function App() {
+  const [loading, setLoading] = useState(true);
+  const { user, setUser } = useUserContext()
 
-  const [screenshotUploaded, setScreenshotUploaded] = useState<boolean>(false);
+  useEffect(() => {
+    async function restoreSession() {
+        // const result = localStorage.getItem("session");
+        const result = await chrome.storage.local.get("session");
+        if (result.session) {
+            // const session = JSON.parse(result);
+            supabase.auth.setSession(result.session);
+            setUser(result.session.user);
+        }
+        setLoading(false);
+    }
+    restoreSession();
+}, []);
 
-  const [screenshotCaptured, setScreenshotCaptured] = useState<ScreenshotResponse>({ success: true});
+useEffect(() => {
+  const { data: authListener } = supabase.auth.onAuthStateChange((_, session) => {
+      if (session) {
+          // localStorage.setItem('session', JSON.stringify(session));
+          chrome.storage.local.set({ session });
+          setUser(session.user);
+      } else {
+          // localStorage.removeItem("session");
+          chrome.storage.local.remove("session");
+          setUser(null);
+      }
+  });
+
+  return () => {
+      authListener.subscription.unsubscribe();
+  };
+}, []);
+
+if (loading) return <p>Loading...</p>;
 
   return (
-    <FormProvider screenshotResponse={screenshotCaptured} >
-      <div className="w-[400px] border-2 border-black p-4">
-        <Header />
-        <main className="mt-4">
-          {!screenshotUploaded ? (
-            screenshotCaptured.success ? (
-              <Form setScreenshotUploaded={setScreenshotUploaded} /> 
-            ) : (
-              <ScreenshotButton setScreenshotCaptured={setScreenshotCaptured} />
-            )
-          ) : (
-             <SuccessfullUpload />
-          )}
-
-        </main>
-      </div>
-    </FormProvider>
+    <Router>
+        <Routes>
+            <Route path="/login" element={user ? <Navigate to="/mainApp" /> : <Login setUser={setUser} />} />
+            <Route path="/mainApp" element={user ? <MainApplication user={user} /> : <Navigate to="/login" />} />
+            <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
+        </Routes>
+    </Router>
   )
 }
 

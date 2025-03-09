@@ -1,4 +1,5 @@
 import { ScreenshotResponse } from "../types";
+import Camera from "../assets/camera-vector.png";
 
 interface ScreenshotButtonProps { 
   setScreenshotCaptured: (screenshot: ScreenshotResponse) => void;
@@ -33,9 +34,9 @@ const ScreenshotButton = ({ setScreenshotCaptured }: ScreenshotButtonProps ) => 
   };
 
   return (
-    <div className="w-full bg-gray-300 overflow-hidden rounded-lg h-[200px]">
+    <div className="w-full bg-gray-300 overflow-hidden rounded-md shadow-md h-[200px]">
       <button onClick={takeScreenshot} className="w-full h-full grid place-content-center cursor-pointer">
-        <img src="../assets/react.svg" alt="camera vector" /> 
+        <img src={Camera} alt="camera vector" /> 
       </button>
     </div>
   );

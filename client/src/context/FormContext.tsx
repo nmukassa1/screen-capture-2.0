@@ -1,27 +1,33 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { FormDataType, ScreenshotResponse } from "../types";
+import { User } from "@supabase/supabase-js";
 
 interface FormProviderProps {
   children: ReactNode;
   screenshotResponse: ScreenshotResponse;
+  user: User;
 }
 
 interface FormContextType {
   formData: FormDataType;
   setFormData: (update: Partial<FormDataType>) => void;
+  loading: boolean;
+  setLoading: (loading: boolean) => void;
 }
 
 const FormContext = createContext<FormContextType | undefined>(undefined);
 
-export function FormProvider({ children, screenshotResponse }: FormProviderProps) {
+export function FormProvider({ children, screenshotResponse, user }: FormProviderProps) {
   
 
   
   const [formData, setFormDataState] = useState<FormDataType>({
     ...Object.fromEntries(Object.entries(screenshotResponse).filter(([key]) => key !== "success")),
     tagIds: [7],
-    userId: "1",
+    userId: user.id,
   });
+
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Remove success key from screenshotResponse submited via chrome api
@@ -35,17 +41,6 @@ export function FormProvider({ children, screenshotResponse }: FormProviderProps
     setFormDataState((prev) => {
       const updatedForm = { ...prev, ...update };
       
-      // if (update.newTag !== undefined) {
-      //   if (update.newTag.length > 0) {
-      //       // If newTag is set, remove tag
-      //       delete updatedForm.tag;
-      //   } else {
-      //       delete updatedForm.newTag;
-      //       updatedForm.tag = prev.tag || "E-Commerce"; // Restore default tag if empty
-      //   }
-      // }
-
-
       console.log("Updated Form Data:", updatedForm);
       
       return updatedForm;
@@ -53,7 +48,7 @@ export function FormProvider({ children, screenshotResponse }: FormProviderProps
   };
 
   return (
-    <FormContext.Provider value={{ formData, setFormData }}>
+    <FormContext.Provider value={{ formData, setFormData, loading, setLoading }}>
       {children}
     </FormContext.Provider>
   );

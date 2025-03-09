@@ -11,5 +11,5 @@
     "action": {
       "default_popup": "index.html"
     },
-    "host_permissions": ["<all_urls>", "http://*/*", "https://*/*"]
+    "host_permissions": ["<all_urls>", "http://*/*", "https://*/*", "https://*.supabase.co/*"]
   }
