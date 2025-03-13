@@ -41,6 +41,8 @@ useEffect(() => {
   };
 }, []);
 
+
+
 if (loading) return <p>Loading...</p>;
 
   return (
@@ -48,7 +50,7 @@ if (loading) return <p>Loading...</p>;
         <Routes>
             <Route path="/login" element={user ? <Navigate to="/mainApp" /> : <Login setUser={setUser} />} />
             <Route path="/mainApp" element={user ? <MainApplication user={user} /> : <Navigate to="/login" />} />
-            <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
+            <Route path="*" element={<Navigate to={user ? "/mainApp" : "/login"} />} />
         </Routes>
     </Router>
   )

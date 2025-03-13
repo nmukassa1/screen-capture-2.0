@@ -6,44 +6,6 @@ import { uploadScreenshotSchema } from "../validation";
 import { z } from "zod";
 import {supabase} from '../supabase/supabase' 
 
-// export const uploadScreenshot = async (req: Request, res: Response) => {
-//   try {
-//     // Validate request body
-//     const parsedData = uploadScreenshotSchema.parse(req.body);
-//     const { siteName, siteUrl, tagIds, userId } = parsedData;
-//     const img = "image.jpg"; // Temporary placeholder
-
-//     // Upload the screenshot
-//     const screenshot = await screenshotService.uploadScreenshot(
-//       userId,
-//       img,
-//       siteName,
-//       siteUrl
-//     );
-
-//     // Insert screenshot-tag relationships
-//     if (tagIds && tagIds.length > 0) {
-//       await prisma.screenshotTag.createMany({
-//         data: tagIds.map((tagId: number) => ({
-//           screenshotId: screenshot.id,
-//           tagId,
-//         })),
-//       });
-//     }
-
-//     // Return the updated screenshot with relationships
-//     const updatedScreenshot = await screenshotService.getScreenshotById(userId, screenshot.id);
-//     res.status(201).json(updatedScreenshot);
-//     return
-//   } catch (error) {
-//     if (error instanceof z.ZodError) {
-//       res.status(400).json({ errors: error.errors });
-//     }
-//     console.error("Error uploading screenshot:", error);
-//     res.status(500).json({ errorMessage: "Failed to upload screenshot", error });
-//   }
-// };
-
 export const getScreenshots = async (req: Request, res: Response) => {
   const { user } = req.params;
   try {
@@ -131,21 +93,21 @@ export const uploadScreenshot = async (req: Request, res: Response) => {
       siteUrl
     );
 
-    // Check if tag exists in the database
-    const validTagIds = await tagService.getTagByIds(userId, tagIds);
-    console.log(validTagIds);
-    
-    if (tagIds.length !== validTagIds.length) {
-      res.status(400).json({ errorMessage: "Invalid tag ID(s) provided" });
-      return
-    }
+  // Step 1: Fetch the valid tag IDs
+  const validTagIds = await tagService.getTagByIds(userId, tagIds);
+  // validTags returns this structure: {tagIds: [{id: 6}, {id: 8}]}
 
-    await prisma.screenshotTag.createMany({
-      data: tagIds.map((tagId: number) => ({
-        screenshotId: screenshot.id,
-        tagId,
-      })),
-    });
+  // Step 2: Map the valid tag IDs to an array
+  const tagIdsArray = validTagIds.map(tag => tag.id);
+
+  // Step 3: Use the array to create the screenshot-tag relationships
+  const tagScreenshotRelationship = await prisma.screenshotTag.createMany({
+    data: tagIdsArray.map((tagId: number) => ({
+      screenshotId: screenshot.id,
+      tagId,
+    })),
+  });
+    
 
     // Return the updated screenshot with relationships
     const updatedScreenshot = await screenshotService.getScreenshotById(userId, screenshot.id);

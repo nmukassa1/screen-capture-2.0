@@ -30,7 +30,7 @@ export function TagSelect() {
          id={tag.id.toString()}
          className="hidden peer"
         //  checked={formData.tagIds?.includes(tag.id)}
-         onChange={(e) => {
+         onChange={async (e) => {
            if (e.target.checked) {
              setFormData({
                tagIds: [...(formData.tagIds || []), tag.id],

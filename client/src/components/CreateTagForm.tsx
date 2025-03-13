@@ -9,11 +9,12 @@ import { useState } from "react";
 import { api } from "../api/api";
 import { useTagsContext } from "../context/TagsContext";
 import { Tag } from "../types";
+import { useUserContext } from "../context/UserContext";
 
 export function CreateTagForm() {
-  const [ formData, setFormData ] = useState<FormData>({ name: "", userId: "1" });
-
   const { setTags } = useTagsContext();
+  const {user} = useUserContext()
+  const [ formData, setFormData ] = useState<FormData>({ name: "", userId: user?.id || "1" });
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -24,7 +25,7 @@ export function CreateTagForm() {
       }
       console.log("Tag created:", response.data);
       setTags((prev: Tag[]) => [...prev, response.data]);
-      setFormData({ name: "", userId: "1" });
+      setFormData({ name: "", userId: user?.id || "1" });
       
     } catch(error){
       console.error("Error:", error);

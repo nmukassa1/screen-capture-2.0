@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,30 +7,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-model User {
-  id          String       @id @default(uuid())
-  email       String       @unique
-  name        String
-  screenshots Screenshot[]
-  tags        Tag[]
-}
-
 model Screenshot {
-  id       Int  @id @default(autoincrement())
+  id       Int     @id @default(autoincrement())
   img      String
   siteName String
   siteUrl  String
-  userId   String
-  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String  @db.Uuid // Store the Supabase Auth User ID
   tags     ScreenshotTag[]
 }
 
 model Tag {
-  id     Int  @id @default(autoincrement())
+  id     Int     @id @default(autoincrement())
   name   String
-  userId String
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String  @db.Uuid // Store the Supabase Auth User ID
   screenshots ScreenshotTag[]
 }
 
