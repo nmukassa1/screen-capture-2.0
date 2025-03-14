@@ -10,11 +10,11 @@ interface FormProps {
 }
 
 function Form({ setScreenshotUploaded }: FormProps) {
-  const { formData, loading } = useFormContext();
+  const { formData, formLoading } = useFormContext();
 
   return (
     <TagsProvider>
-      {loading ? (
+      {formLoading ? (
         <Spinner />
       ) : (
         <div>

@@ -14,6 +14,7 @@ function SuccessfullUpload() {
             clearTimeout(fadeIn);
         }
     }, [])
+    
     return ( 
         <div id='upload-confirmation' className="grid place-content-center transition-opacity ease-in duration-500">
             <div className="w-[200px] h-[200px] rounded-full bg-[#B3D8A8] flex items-center justify-center">

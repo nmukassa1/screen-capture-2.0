@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { FormDataType, ScreenshotResponse } from "../types";
 import { User } from "@supabase/supabase-js";
+import { logToConsoleViaExtension } from "../lib";
 
 interface FormProviderProps {
   children: ReactNode;
@@ -11,8 +12,8 @@ interface FormProviderProps {
 interface FormContextType {
   formData: FormDataType;
   setFormData: (update: Partial<FormDataType>) => void;
-  loading: boolean;
-  setLoading: (loading: boolean) => void;
+  formLoading: boolean;
+  setFormLoading: (loading: boolean) => void;
 }
 
 const FormContext = createContext<FormContextType | undefined>(undefined);
@@ -27,7 +28,15 @@ export function FormProvider({ children, screenshotResponse, user }: FormProvide
     userId: user.id,
   });
 
-  const [loading, setLoading] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
+
+  useEffect(() => {
+    async function x(){
+     await  logToConsoleViaExtension(formLoading)
+
+    }
+    x()
+  }, [formLoading])
 
   useEffect(() => {
     // Remove success key from screenshotResponse submited via chrome api
@@ -48,7 +57,7 @@ export function FormProvider({ children, screenshotResponse, user }: FormProvide
   };
 
   return (
-    <FormContext.Provider value={{ formData, setFormData, loading, setLoading }}>
+    <FormContext.Provider value={{ formData, setFormData, formLoading, setFormLoading }}>
       {children}
     </FormContext.Provider>
   );

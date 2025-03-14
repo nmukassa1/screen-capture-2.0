@@ -16,7 +16,7 @@ function MainApplication({ user }: { user: User }) {
     
     return ( 
         <FormProvider screenshotResponse={screenshotCaptured} user={user} >
-        <div className="w-[400px] p-4">
+        <div className="popup-width p-4">
           <Header />
           <main className="mt-4 min-h-[200px]">
             {!screenshotUploaded ? (

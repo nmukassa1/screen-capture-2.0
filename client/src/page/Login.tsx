@@ -26,7 +26,7 @@ const Login = ({ setUser } : {setUser: (value: User) => void}) => {
     };
 
     return (
-        <div>
+        <div className="popup-width">
             <h2>Login</h2>
             <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
             <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
