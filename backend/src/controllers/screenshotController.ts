@@ -6,19 +6,7 @@ import { uploadScreenshotSchema } from "../validation";
 import { z } from "zod";
 import {supabase} from '../supabase/supabase' 
 
-export const getScreenshots = async (req: Request, res: Response) => {
-  const { user } = req.params;
-  try {
-    const screenshots = await screenshotService.getScreenshots((user));
-    if (screenshots.length === 0) {
-      res.status(404).json({ error: "No screenshots created" });
-      return;
-    }
-    res.json(screenshots);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch screenshots" });
-  }
-};
+
 
 export const deleteScreenshot = async (req: Request, res: Response) => {
   const { user, screenshotId } = req.body;
@@ -30,19 +18,37 @@ export const deleteScreenshot = async (req: Request, res: Response) => {
   }
 };
 
-export const getScreenshotsByTag = async (req: Request, res: Response) => {
-  const { user, tagId } = req.params;
+export const getScreenshots = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  let { tag } = req.query;
+
+  console.log("Received tags:", tag);
+
   try {
-    const screenshots = await screenshotService.getScreenshotsByTag(user, parseInt(tagId));
+    let screenshots;
+
+    if (!tag) {
+      // If no tags are provided, fetch all screenshots for the user
+      screenshots = await screenshotService.getScreenshots(userId);
+    } else {
+      // Normalize tag query parameter into an array
+      const tagNames = Array.isArray(tag) ? tag : [tag];
+      console.log("Normalized tags:", tagNames.map(tag => tag.toString()));
+
+      screenshots = await screenshotService.getScreenshotsByTagName(userId, tagNames.map(tag => tag.toString()));
+    }
+
     if (screenshots.length === 0) {
-      res.status(404).json({ error: "No screenshots found for tag" });
+      res.status(404).json({ error: "No screenshots found" });
       return;
     }
+
     res.json(screenshots);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch screenshots" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch screenshots", details: err });
   }
-}
+};
+
 
 export const getScreenshotById = async (req: Request, res: Response) => {
   const { user, screenshotId } = req.params;
