@@ -12,9 +12,16 @@ export const createTag = async (userId: string, name: string) => {
   return await prisma.tag.create({ data: { userId, name } });
 };
 
+
 export const deleteTag = async (userId: string, tagId: number) => {
-  return await prisma.tag.deleteMany({
+  const tag = await prisma.tag.findFirst({
     where: { id: tagId, userId },
+  });
+
+  if (!tag) throw new Error("Tag not found");
+
+  return await prisma.tag.delete({
+    where: { id: tag.id },
   });
 };
 

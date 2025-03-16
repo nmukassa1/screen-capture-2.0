@@ -62,11 +62,11 @@ export const createTag = async (req: Request, res: Response) => {
 };
 
 export const deleteTag = async (req: Request, res: Response) => {
-  const { user, tagId } = req.body;
+  const { userId, tagId } = req.body;
   try {
-    await tagService.deleteTag(user, parseInt(tagId));
-    res.status(204).send();
-  } catch (error) {
-    res.status(500).json({ error: "Failed to delete tag" });
+    await tagService.deleteTag(userId, tagId);
+    res.status(200).json('Tag deleted');
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete tag", message: err });
   }
 };
