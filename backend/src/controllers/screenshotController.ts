@@ -127,19 +127,11 @@ export const getScreenshotById = async (req: Request, res: Response) => {
   }
 }
 
-export const addTagsToScreenshot = async (req: Request, res: Response) => {
-  const { userId, screenshotId, tagIds } = req.body;
-  console.log("Adding tags to screenshot:", userId, screenshotId, tagIds);
-  
-  let formattedTagIds;
-  if (Array.isArray(tagIds)) {
-    formattedTagIds = tagIds.map((tagId: string) => parseInt(tagId));
-  } else {
-    formattedTagIds = [parseInt(tagIds)];
-  }
+export const addTagToScreenshot = async (req: Request, res: Response) => {
+  const { userId, screenshotId, tagId } = req.body;
 
   try {
-    const screenshot = await screenshotService.addTagsToScreenshot(userId, parseInt(screenshotId), formattedTagIds);
+    const screenshot = await screenshotService.addTagToScreenshot(userId, parseInt(screenshotId), tagId);
     res.json(screenshot);
   } catch (error) {
     res.status(500).json({ error: "Failed to add tags to screenshot", err: error });

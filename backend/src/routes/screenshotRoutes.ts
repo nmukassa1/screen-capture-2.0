@@ -7,7 +7,7 @@ router.get("/:userId", screenshotController.getScreenshots);
 // router.post("/", upload.single("img"), screenshotController.uploadScreenshot);
 router.post("/", screenshotController.uploadScreenshot);
 router.delete("/", screenshotController.deleteScreenshot);
-router.patch("/addTag", screenshotController.addTagsToScreenshot );
+router.patch("/addTag", screenshotController.addTagToScreenshot );
 router.patch("/removeTag", screenshotController.deleteTagFromScreenshot);
 
 export default router;

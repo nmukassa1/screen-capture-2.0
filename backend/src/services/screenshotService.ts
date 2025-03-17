@@ -69,12 +69,12 @@ export const deleteScreenshot = async (userId: string, screenshotId: number) => 
   });
 };
 
-export const addTagsToScreenshot = async (userId: string, screenshotId: number, tagIds: number[]) => {
+export const addTagToScreenshot = async (userId: string, screenshotId: number, tagId: number) => {
   return await prisma.screenshot.update({
     where: { id: screenshotId, userId },
     data: {
       tags: {
-        create: tagIds.map(tagId => ({ tagId }))
+        create: {tagId}
       }
     }
   });
