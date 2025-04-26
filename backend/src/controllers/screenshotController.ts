@@ -4,7 +4,7 @@ import * as tagService from "../services/tagService";
 import prisma from "../prisma";
 import { uploadScreenshotSchema } from "../validation";
 import { z } from "zod";
-import {supabase} from '../supabase/supabase' 
+import { supabase } from "../supabase/supabase";
 
 export const uploadScreenshot = async (req: Request, res: Response) => {
   try {
@@ -20,16 +20,20 @@ export const uploadScreenshot = async (req: Request, res: Response) => {
     // Convert base64 image to Buffer
     const base64Data = image.replace(/^data:image\/png;base64,/, "");
     const imageBuffer = Buffer.from(base64Data, "base64");
-    const imageBlob = new Blob([imageBuffer], { type: "image/png" })
+    const imageBlob = new Blob([imageBuffer], { type: "image/png" });
 
     // Define image path in Supabase Storage
     const fileName = `screenshots/${userId}-${Date.now()}.png`;
-    const { data, error: uploadError } = await supabase.storage.from("screenshots").upload(fileName, imageBlob, {
-      contentType: "image/png",
-    });
+    const { data, error: uploadError } = await supabase.storage
+      .from("screenshots")
+      .upload(fileName, imageBlob, {
+        contentType: "image/png",
+      });
 
     if (uploadError) {
-      throw new Error("Failed to upload image to Supabase: " + uploadError.message);
+      throw new Error(
+        "Failed to upload image to Supabase: " + uploadError.message
+      );
     }
 
     const imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/screenshots/${fileName}`;
@@ -42,26 +46,12 @@ export const uploadScreenshot = async (req: Request, res: Response) => {
       siteUrl
     );
 
-  // Step 1: Fetch the valid tag IDs
-  const validTagIds = await tagService.getTagByIds(userId, tagIds);
-  // validTags returns this structure: {tagIds: [{id: 6}, {id: 8}]}
-
-  // Step 2: Map the valid tag IDs to an array
-  const tagIdsArray = validTagIds.map(tag => tag.id);
-
-  // Step 3: Use the array to create the screenshot-tag relationships
-  const tagScreenshotRelationship = await prisma.screenshotTag.createMany({
-    data: tagIdsArray.map((tagId: number) => ({
-      screenshotId: screenshot.id,
-      tagId,
-    })),
-  });
-    
-
     // Return the updated screenshot with relationships
-    const updatedScreenshot = await screenshotService.getScreenshotById(userId, screenshot.id);
+    const updatedScreenshot = await screenshotService.getScreenshotById(
+      userId,
+      screenshot.id
+    );
     console.log(updatedScreenshot);
-    
 
     res.status(201).json(updatedScreenshot);
   } catch (error) {
@@ -69,17 +59,18 @@ export const uploadScreenshot = async (req: Request, res: Response) => {
       res.status(400).json({ errors: error.errors });
     } else {
       console.error(error);
-      res.status(500).json({ errorMessage: "Failed to upload screenshot", error: error });
+      res
+        .status(500)
+        .json({ errorMessage: "Failed to upload screenshot", error: error });
     }
   }
 };
-
 
 export const deleteScreenshot = async (req: Request, res: Response) => {
   const { user, screenshotId } = req.body;
   try {
     await screenshotService.deleteScreenshot(user, screenshotId);
-    res.status(204).send('Deleted');
+    res.status(204).send("Deleted");
   } catch (error) {
     res.status(500).json({ error: "Failed to delete screenshot" });
   }
@@ -87,63 +78,93 @@ export const deleteScreenshot = async (req: Request, res: Response) => {
 
 export const getScreenshots = async (req: Request, res: Response) => {
   const { userId } = req.params;
-  let { tag } = req.query;
+  let { tag, page = "1" } = req.query; // Default page = 1
 
-  // console.log("Received tags:", tag);s
+  const pageNumber = parseInt(page as string, 10);
+  const pageSize = 16;
+  const skip = (pageNumber - 1) * pageSize;
 
   try {
-    let screenshots;
+    let data;
 
     if (!tag) {
-      // If no tags are provided, fetch all screenshots for the user
-      screenshots = await screenshotService.getScreenshots(userId);
+      data = await screenshotService.getScreenshots(userId, skip, pageSize);
     } else {
-      // Normalize tag query parameter into an array
       const tagNames = Array.isArray(tag) ? tag : [tag];
-      console.log("Normalized tags:", tagNames.map(tag => tag.toString()));
-
-      screenshots = await screenshotService.getScreenshotsByTagName(userId, tagNames.map(tag => tag.toString()));
+      data = await screenshotService.getScreenshotsByTagName(
+        userId,
+        tagNames.map((tag) => tag.toString()),
+        skip,
+        pageSize
+      );
     }
 
-    if (screenshots.length === 0) {
+    const screenshots = data[0];
+    const totalCount = data[1];
+
+    const totalPages = Math.ceil(Number(totalCount) / pageSize);
+
+    if (Array.isArray(screenshots) && screenshots.length === 0) {
       res.status(404).json({ error: "No screenshots found" });
       return;
     }
 
-    res.json(screenshots);
+    res.json({ screenshots, totalPages });
+
+    // res.json({
+    //   data: screenshots,
+    //   totalPages,
+    //   currentPage: pageNumber,
+    // });
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch screenshots", details: err });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch screenshots", details: err });
   }
 };
-
 
 export const getScreenshotById = async (req: Request, res: Response) => {
   const { user, screenshotId } = req.params;
   try {
-    const screenshot = await screenshotService.getScreenshotById(user, parseInt(screenshotId));
+    const screenshot = await screenshotService.getScreenshotById(
+      user,
+      parseInt(screenshotId)
+    );
     res.json(screenshot);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch screenshot" });
   }
-}
+};
 
 export const addTagToScreenshot = async (req: Request, res: Response) => {
   const { userId, screenshotId, tagId } = req.body;
 
   try {
-    const screenshot = await screenshotService.addTagToScreenshot(userId, parseInt(screenshotId), tagId);
+    const screenshot = await screenshotService.addTagToScreenshot(
+      userId,
+      parseInt(screenshotId),
+      tagId
+    );
     res.json(screenshot);
   } catch (error) {
-    res.status(500).json({ error: "Failed to add tags to screenshot", err: error });
+    res
+      .status(500)
+      .json({ error: "Failed to add tags to screenshot", err: error });
   }
-}
+};
 
 export const deleteTagFromScreenshot = async (req: Request, res: Response) => {
   const { userId, screenshotId, tagId } = req.body;
   try {
-    const screenshot = await screenshotService.deleteTagFromScreenshot(userId, parseInt(screenshotId), parseInt(tagId));
+    const screenshot = await screenshotService.deleteTagFromScreenshot(
+      userId,
+      parseInt(screenshotId),
+      parseInt(tagId)
+    );
     res.json(screenshot);
   } catch (error) {
-    res.status(500).json({ error: "Failed to delete tags from screenshot", err: error });
+    res
+      .status(500)
+      .json({ error: "Failed to delete tags from screenshot", err: error });
   }
-}
+};

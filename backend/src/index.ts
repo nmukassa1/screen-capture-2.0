@@ -26,21 +26,6 @@ app.get('/', (req, res) => {
 app.use("/tags", tagRoutes);
 app.use("/screenshots", screenshotRoutes);
 
-app.post('/api/screenshot', (req: Request, res: Response) => {
-    const { screenshot } = req.body;
-    
-    if (!screenshot) {
-        res.status(400).json({ error: 'Screenshot missing' });
-        return 
-    }
-   
-    const result = convertImageToFile(screenshot);
-    console.log(result);
-    
-
-    res.status(200).json({ success: true });
-    return
-})
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
@@ -48,30 +33,4 @@ app.listen(PORT, () => {
 
 
 
-interface ConvertImageResult {
-    success?: boolean;
-    path?: string;
-    error?: string;
-}
 
-async function convertImageToFile(image: string): Promise<ConvertImageResult>  {
-    try {
-        // Remove Base64 prefix (data:image/png;base64,)
-        const base64Data = image.replace(/^data:image\/png;base64,/, "");
-        
-        // Generate unique filename
-        const filename = `${uuidv4()}.png`;
-        const filePath = path.join(UPLOAD_DIR, filename);
-
-        // Convert Base64 to a file
-        await fs.writeFile(filePath, base64Data, 'base64');
-
-        // Here, you would store `filename` or `filePath` in a database
-        console.log(`Saved screenshot as: ${filePath}`);
-
-        return {success: true, path: `/uploads/${filename}`};
-    } catch (error) {
-        console.error('Error saving screenshot:', error);
-        return {error: 'Failed to save screenshot'};
-    }
-}
