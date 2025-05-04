@@ -2,8 +2,6 @@ import { useFormContext } from "../context/FormContext";
 import { FormDataType, Tag } from "../types";
 import { useTagsContext } from "../context/TagsContext";
 
-
-
 export function TagSelect() {
   const { formData, setFormData } = useFormContext();
   const { tags } = useTagsContext();
@@ -14,23 +12,45 @@ export function TagSelect() {
     <div className="flex flex-col gap-y-[24px] py-4 mt-4 overflow-x-auto">
       {/* Row 1 */}
       <div className="flex gap-x-2">
-        {tags.filter((_, index) => index % 2 === 0).map((tag) => (
-          <TagItem key={tag.id} tag={tag} formData={formData} setFormData={setFormData} />
-        ))}
+        {tags
+          .filter((_, index) => index % 2 === 0)
+          .map((tag) => (
+            <TagItem
+              key={tag.id}
+              tag={tag}
+              formData={formData}
+              setFormData={setFormData}
+            />
+          ))}
       </div>
 
       {/* Row 2 */}
       <div className="flex gap-x-2">
-        {tags.filter((_, index) => index % 2 !== 0).map((tag) => (
-          <TagItem key={tag.id} tag={tag} formData={formData} setFormData={setFormData} />
-        ))}
+        {tags
+          .filter((_, index) => index % 2 !== 0)
+          .map((tag) => (
+            <TagItem
+              key={tag.id}
+              tag={tag}
+              formData={formData}
+              setFormData={setFormData}
+            />
+          ))}
       </div>
     </div>
   );
 }
 
 // Extracted TagItem component for cleaner code
-function TagItem({ tag, formData, setFormData }: { tag: Tag, formData: FormDataType, setFormData: (update: Partial<FormDataType>) => void }) {
+function TagItem({
+  tag,
+  formData,
+  setFormData,
+}: {
+  tag: Tag;
+  formData: FormDataType;
+  setFormData: (update: Partial<FormDataType>) => void;
+}) {
   return (
     <div className="shrink-0">
       <input
@@ -40,11 +60,14 @@ function TagItem({ tag, formData, setFormData }: { tag: Tag, formData: FormDataT
         id={tag.id.toString()}
         className="hidden peer"
         onChange={(e) => {
-          if (e.target.checked) {
-            setFormData({ tagIds: [...(formData.tagIds || []), tag.id] });
-          } else {
-            setFormData({ tagIds: formData.tagIds?.filter((id) => id !== tag.id) });
-          }
+          const updatedTagIds = e.target.checked
+            ? [...(formData.tagIds || []), Number(tag.id)]
+            : (formData.tagIds || []).filter((id) => id !== Number(tag.id));
+
+          setFormData({
+            ...formData,
+            tagIds: updatedTagIds,
+          });
         }}
       />
       <label

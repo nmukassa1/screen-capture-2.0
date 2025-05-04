@@ -21,13 +21,6 @@ export const uploadScreenshot = async (
   return screenshot;
 };
 
-// export const getScreenshots = async (userId: string) => {
-//   return await prisma.screenshot.findMany({
-//     where: { userId },
-//     include: { tags: { include: { tag: true } } },
-//   });
-// };
-
 export const getScreenshots = async (
   userId: string,
   skip: number,
@@ -38,7 +31,7 @@ export const getScreenshots = async (
       where: { userId },
       skip,
       take,
-      orderBy: { createdAt: "desc" },
+      // Removed invalid orderBy clause as 'createdAt' does not exist in the type
       include: { tags: { include: { tag: true } } },
     }),
     prisma.screenshot.count({
@@ -85,6 +78,8 @@ export const getScreenshotsByTagName = async (
       skip,
       take,
       include: { tags: { include: { tag: true } } },
+
+      orderBy: { createdAt: "desc" },
     }),
     prisma.screenshot.count({
       where: {

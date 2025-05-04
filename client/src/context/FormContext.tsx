@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 import { FormDataType, ScreenshotResponse } from "../types";
 import { User } from "@supabase/supabase-js";
 import { logToConsoleViaExtension } from "../lib";
@@ -11,53 +17,67 @@ interface FormProviderProps {
 
 interface FormContextType {
   formData: FormDataType;
-  setFormData: (update: Partial<FormDataType>) => void;
+  setFormData: (
+    update:
+      | Partial<FormDataType>
+      | ((prev: FormDataType) => Partial<FormDataType>)
+  ) => void;
   formLoading: boolean;
   setFormLoading: (loading: boolean) => void;
 }
 
 const FormContext = createContext<FormContextType | undefined>(undefined);
 
-export function FormProvider({ children, screenshotResponse, user }: FormProviderProps) {
-  
-
-  
+export function FormProvider({
+  children,
+  screenshotResponse,
+  user,
+}: FormProviderProps) {
   const [formData, setFormDataState] = useState<FormDataType>({
-    ...Object.fromEntries(Object.entries(screenshotResponse).filter(([key]) => key !== "success")),
-    tagIds: [7],
+    ...Object.fromEntries(
+      Object.entries(screenshotResponse).filter(([key]) => key !== "success")
+    ),
+    tagIds: [],
     userId: user.id,
   });
 
   const [formLoading, setFormLoading] = useState(false);
 
   useEffect(() => {
-    async function x(){
-     await  logToConsoleViaExtension(formLoading)
-
+    async function x() {
+      await logToConsoleViaExtension(formLoading);
     }
-    x()
-  }, [formLoading])
+    x();
+  }, [formLoading]);
 
   useEffect(() => {
     // Remove success key from screenshotResponse submited via chrome api
     setFormDataState((prev) => ({
       ...prev,
-      ...Object.fromEntries(Object.entries(screenshotResponse).filter(([key]) => key !== "success")),
+      ...Object.fromEntries(
+        Object.entries(screenshotResponse).filter(([key]) => key !== "success")
+      ),
     }));
   }, [screenshotResponse]);
 
-  const setFormData = (update: Partial<FormDataType>) => {
+  const setFormData = (
+    update:
+      | Partial<FormDataType>
+      | ((prev: FormDataType) => Partial<FormDataType>)
+  ) => {
     setFormDataState((prev) => {
-      const updatedForm = { ...prev, ...update };
-      
-      console.log("Updated Form Data:", updatedForm);
-      
-      return updatedForm;
+      const newData = typeof update === "function" ? update(prev) : update;
+      return { ...prev, ...newData };
     });
   };
+  useEffect(() => {
+    console.log("Form Data Updated:", formData);
+  }, [formData]);
 
   return (
-    <FormContext.Provider value={{ formData, setFormData, formLoading, setFormLoading }}>
+    <FormContext.Provider
+      value={{ formData, setFormData, formLoading, setFormLoading }}
+    >
       {children}
     </FormContext.Provider>
   );

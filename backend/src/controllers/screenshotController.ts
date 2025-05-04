@@ -12,10 +12,7 @@ export const uploadScreenshot = async (req: Request, res: Response) => {
     const parsedData = uploadScreenshotSchema.parse(req.body);
     const { siteName, siteUrl, tagIds, userId, image } = parsedData;
 
-    // if (!image) {
-    //   res.status(400).json({ errorMessage: "Screenshot image is required" });
-    //   return
-    // }
+    console.log("Parsed Data:", parsedData);
 
     // Convert base64 image to Buffer
     const base64Data = image.replace(/^data:image\/png;base64,/, "");
@@ -43,7 +40,8 @@ export const uploadScreenshot = async (req: Request, res: Response) => {
       userId,
       imageUrl,
       siteName,
-      siteUrl
+      siteUrl,
+      tagIds
     );
 
     // Return the updated screenshot with relationships
