@@ -120,6 +120,7 @@ export const getScreenshots = async (req: Request, res: Response) => {
     res
       .status(500)
       .json({ error: "Failed to fetch screenshots", details: err });
+    return;
   }
 };
 

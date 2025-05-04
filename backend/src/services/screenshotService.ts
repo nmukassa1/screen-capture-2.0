@@ -38,6 +38,7 @@ export const getScreenshots = async (
       where: { userId },
       skip,
       take,
+      orderBy: { createdAt: "desc" },
       include: { tags: { include: { tag: true } } },
     }),
     prisma.screenshot.count({
@@ -57,32 +58,6 @@ export const getScreenshotById = async (
     include: { tags: { include: { tag: true } } },
   });
 };
-
-// export const getScreenshotsByTagName = async (
-//   userId: string,
-//   tagNames: string[]
-// ) => {
-//   // Fetch tagIds based on provided tagNames
-//   const tags = await prisma.tag.findMany({
-//     where: { name: { in: tagNames } }, // Match tagNames to find tagId
-//     select: { id: true }, // Only select the tag IDs
-//   });
-
-//   const tagIds = tags.map((tag) => tag.id);
-//   console.log("Found tagIds:", tagIds);
-
-//   if (tagIds.length === 0) {
-//     return []; // No matching tags found
-//   }
-
-//   return await prisma.screenshot.findMany({
-//     where: {
-//       userId,
-//       tags: { some: { tagId: { in: tagIds } } }, // Filter by multiple tagIds
-//     },
-//     include: { tags: { include: { tag: true } } },
-//   });
-// };
 
 export const getScreenshotsByTagName = async (
   userId: string,

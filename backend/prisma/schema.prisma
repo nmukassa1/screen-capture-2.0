@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+    output   = "./node_modules/@prisma/client"
 }
 
 datasource db {
@@ -13,6 +14,7 @@ model Screenshot {
   siteName String
   siteUrl  String
   userId   String  @db.Uuid // Store the Supabase Auth User ID
+    createdAt DateTime @default(now()) 
   tags     ScreenshotTag[]
 }
 
@@ -20,6 +22,7 @@ model Tag {
   id     Int     @id @default(autoincrement())
   name   String
   userId String  @db.Uuid // Store the Supabase Auth User ID
+  createdAt DateTime @default(now()) 
   screenshots ScreenshotTag[]
 }
 
