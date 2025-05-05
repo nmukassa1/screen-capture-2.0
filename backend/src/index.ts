@@ -1,6 +1,5 @@
 import express, { Application, Request, Response } from "express";
 import cors from "cors";
-import { v4 as uuidv4 } from "uuid";
 import fs from "fs-extra";
 import path from "path";
 import tagRoutes from "./routes/tagRoutes";
@@ -9,7 +8,7 @@ import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 dotenv.config();
 
-const PORT = 3000;
+const PORT = parseInt(process.env.SERVER_PORT || "3000", 10);
 
 const app: Application = express();
 
