@@ -33,6 +33,7 @@ export const getScreenshots = async (
       take,
       // Removed invalid orderBy clause as 'createdAt' does not exist in the type
       include: { tags: { include: { tag: true } } },
+      orderBy: { createdAt: "desc" },
     }),
     prisma.screenshot.count({
       where: { userId },
