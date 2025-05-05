@@ -1,13 +1,20 @@
 import { Request, Response } from "express";
 import * as screenshotService from "../services/screenshotService";
-import * as tagService from "../services/tagService";
-import prisma from "../prisma";
 import { uploadScreenshotSchema } from "../validation";
 import { z } from "zod";
 import { supabase } from "../supabase/supabase";
 
 export const uploadScreenshot = async (req: Request, res: Response) => {
   try {
+    // const { data: session, error: sessionError } =
+    //   await supabase.auth.getUser();
+    // console.log("Session:", session);
+    // if (sessionError) {
+    //   throw new Error(
+    //     "Failed to get session: " + JSON.stringify(sessionError, null, 2)
+    //   );
+    // }
+
     // Validate request body
     const parsedData = uploadScreenshotSchema.parse(req.body);
     const { siteName, siteUrl, tagIds, userId, image } = parsedData;
@@ -29,7 +36,8 @@ export const uploadScreenshot = async (req: Request, res: Response) => {
 
     if (uploadError) {
       throw new Error(
-        "Failed to upload image to Supabase: " + uploadError.message
+        "Failed to upload image to Supabase: " +
+          JSON.stringify(uploadError, null, 2)
       );
     }
 

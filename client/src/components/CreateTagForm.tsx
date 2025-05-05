@@ -48,7 +48,7 @@ export function CreateTagForm() {
       />
       <button
         type="submit"
-        className={`w-[30px] h-[30px] rounded-full bg-gray-300 grid place-content-center ${
+        className={`w-[30px] h-[30px] rounded-full border-2 border-black  grid place-content-center ${
           !formData.name ? "cursor-not-allowed" : "cursor-pointer"
         }`}
         disabled={!formData.name}

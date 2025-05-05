@@ -72,8 +72,8 @@ function TagItem({
       />
       <label
         htmlFor={tag.id.toString()}
-        className="cursor-pointer px-4 py-2 rounded-md border border-gray-300 bg-gray-100 text-gray-700 
-                 hover:bg-gray-200 peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500 transition"
+        className="cursor-pointer px-4 py-2 rounded-md border border-black text-black
+                 hover:bg-black hover:text-white peer-checked:bg-black peer-checked:text-white transition"
       >
         {tag.name}
       </label>

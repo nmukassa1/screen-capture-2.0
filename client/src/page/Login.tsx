@@ -22,10 +22,16 @@ const Login = ({ setUser }: { setUser: (value: User) => void }) => {
     } else {
       // await chrome.storage.local.set({ session: data.session });
       localStorage.setItem("session", JSON.stringify(data.session));
-      console.log(data);
+      // await supabase.auth.setSession({
+      //   access_token: data.session.access_token,
+      //   refresh_token: data.session.refresh_token,
+      // });
+
+      // await serviceWorker(data.session.access_token);
 
       setUser(data.session.user);
       navigate("/dashboard");
+      console.log(data);
     }
   };
 
@@ -72,3 +78,33 @@ const Login = ({ setUser }: { setUser: (value: User) => void }) => {
 };
 
 export default Login;
+
+// async function serviceWorker(data: string) {
+//   chrome.runtime.sendMessage(
+//     { action: "set_cookie", data },
+//     async (response) => {
+//       if (chrome.runtime.lastError) {
+//         console.error(
+//           "Error sending message:",
+//           chrome.runtime.lastError.message
+//         );
+//         return;
+//       }
+//       if (response && response.success) {
+//         const [tab] = await chrome.tabs.query({
+//           active: true,
+//           lastFocusedWindow: true,
+//         });
+//         chrome.scripting.executeScript({
+//           args: [response],
+//           target: { tabId: tab.id! },
+//           func: (response) => {
+//             console.log("Response received:", response);
+//           },
+//         });
+//       } else {
+//         console.error("Error:", response);
+//       }
+//     }
+//   );
+// }
