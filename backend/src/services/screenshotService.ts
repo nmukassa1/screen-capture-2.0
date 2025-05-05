@@ -1,4 +1,7 @@
 import prisma from "../prisma";
+export interface Tag {
+  id: number;
+}
 
 export const uploadScreenshot = async (
   userId: string,
@@ -64,7 +67,7 @@ export const getScreenshotsByTagName = async (
     select: { id: true },
   });
 
-  const tagIds = tags.map((tag) => tag.id);
+  const tagIds = tags.map((tag: Tag) => tag.id);
 
   if (tagIds.length === 0) {
     return [[], 0]; // Represents screenshots and totalCount for page
