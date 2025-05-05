@@ -6,6 +6,8 @@ import path from "path";
 import tagRoutes from "./routes/tagRoutes";
 import screenshotRoutes from "./routes/screenshotRoutes";
 import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
+dotenv.config();
 
 const PORT = 3000;
 
@@ -18,7 +20,7 @@ fs.ensureDirSync(UPLOAD_DIR);
 // Middleware
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
-app.use(cors({ origin: "http://localhost:3001", credentials: true }));
+app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }));
 app.use(cookieParser());
 
 app.get("/", (req, res) => {
