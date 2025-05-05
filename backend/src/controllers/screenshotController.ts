@@ -63,11 +63,17 @@ export const uploadScreenshot = async (req: Request, res: Response) => {
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ errors: error.errors });
+    } else if (error instanceof Error) {
+      // Handle the error as an instance of the built-in Error class
+      console.error(error.message);
+      res.status(500).json({
+        errorMessage: "Failed to upload screenshot",
+        error: error.message,
+      });
     } else {
-      console.error(error);
-      res
-        .status(500)
-        .json({ errorMessage: "Failed to upload screenshot", error: error });
+      // Handle unexpected error types
+      console.error("Unexpected error:", error);
+      res.status(500).json({ errorMessage: "An unexpected error occurred" });
     }
   }
 };
