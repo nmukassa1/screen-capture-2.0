@@ -45,11 +45,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 async function uploadScreenshot(formData) {
   try {
     // Make the API request and wait for the response
-    const response = await fetch("http://localhost:3000/screenshots", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+    const response = await fetch(
+      import.meta.process.env.VITE_API_URL + "screenshots",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      }
+    );
     const data = await response.json();
 
     return data;
