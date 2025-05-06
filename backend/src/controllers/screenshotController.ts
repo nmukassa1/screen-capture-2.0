@@ -98,8 +98,8 @@ export const getScreenshots = async (req: Request, res: Response) => {
 
   try {
     let data;
+    console.time("getScreenshots");
     if (!tag) {
-      console.time("getScreenshots");
       data = await screenshotService.getScreenshots(userId, skip, pageSize);
       console.timeEnd("getScreenshots");
     } else {
