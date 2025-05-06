@@ -98,9 +98,10 @@ export const getScreenshots = async (req: Request, res: Response) => {
 
   try {
     let data;
-
     if (!tag) {
+      console.time("getScreenshots");
       data = await screenshotService.getScreenshots(userId, skip, pageSize);
+      console.timeEnd("getScreenshots");
     } else {
       const tagNames = Array.isArray(tag) ? tag : [tag];
       data = await screenshotService.getScreenshotsByTagName(
