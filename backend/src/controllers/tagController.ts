@@ -5,16 +5,18 @@ import { createTagSchema } from "../validation";
 export const getAllTags = async (req: Request, res: Response) => {
   const { user } = req.params;
 
-  if(!user) {
+  if (!user) {
     res.status(400).json({ error: "User not found" });
     return;
   }
-  
+
   try {
+    console.time("Time to get all tags from DB");
     const tags = await tagService.getAllTags(user);
+    console.timeEnd("Time to get all tags from DB");
     if (!tags) {
       res.status(404).json({ error: "Tags not found" });
-      return
+      return;
     }
     res.json(tags);
   } catch (error) {
@@ -24,7 +26,10 @@ export const getAllTags = async (req: Request, res: Response) => {
 
 export const getTagByName = async (req: Request, res: Response) => {
   try {
-    const tag = await tagService.getTagByName(req.body.user.id, req.params.tagName);
+    const tag = await tagService.getTagByName(
+      req.body.user.id,
+      req.params.tagName
+    );
     res.json(tag);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch tag" });
@@ -39,17 +44,17 @@ export const createTag = async (req: Request, res: Response) => {
     if (!parsedBody.success) {
       // If validation fails, send a response with the validation error details
       res.status(400).json({
-        error: 'Validation failed',
+        error: "Validation failed",
         issues: parsedBody.error.errors,
       });
-      return
+      return;
     }
-    
+
     const { name, userId } = parsedBody.data;
 
     const tagExist = await tagService.getTagByName(userId, name);
     if (tagExist) {
-      res.status(400).json({ error: 'Tag already exists' });
+      res.status(400).json({ error: "Tag already exists" });
       return;
     }
 
@@ -57,7 +62,7 @@ export const createTag = async (req: Request, res: Response) => {
     res.status(201).json(tag);
     // res.status(201).json({ message: 'Tag created' });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create tag' });
+    res.status(500).json({ error: "Failed to create tag" });
   }
 };
 
@@ -65,7 +70,7 @@ export const deleteTag = async (req: Request, res: Response) => {
   const { userId, tagId } = req.body;
   try {
     await tagService.deleteTag(userId, tagId);
-    res.status(200).json('Tag deleted');
+    res.status(200).json("Tag deleted");
   } catch (err) {
     res.status(500).json({ error: "Failed to delete tag", message: err });
   }
