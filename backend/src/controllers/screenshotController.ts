@@ -105,12 +105,15 @@ export const getScreenshots = async (req: Request, res: Response) => {
       console.timeEnd("Time to get screenshots from DB");
     } else {
       const tagNames = Array.isArray(tag) ? tag : [tag];
+
+      console.time("Time to get screenshots from DB by tag");
       data = await screenshotService.getScreenshotsByTagName(
         userId,
         tagNames.map((tag) => tag.toString()),
         skip,
         pageSize
       );
+      console.timeEnd("Time to get screenshots from DB by tag");
     }
 
     const screenshots = data[0];
