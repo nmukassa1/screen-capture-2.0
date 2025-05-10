@@ -5,6 +5,7 @@ import path from "path";
 import tagRoutes from "./routes/tagRoutes";
 import screenshotRoutes from "./routes/screenshotRoutes";
 import cookieParser from "cookie-parser";
+import compression from "compression";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }));
 app.use(cookieParser());
+app.use(compression());
 
 app.get("/", (req, res) => {
   res.json("Hello World");
