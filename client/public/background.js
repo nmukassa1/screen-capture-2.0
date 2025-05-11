@@ -34,22 +34,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     return true; // Ensures sendResponse is handled asynchronously
   }
-
-  //   if (message.action === "set_cookie") {
-  //     console.log("Setting cookie...");
-  //     console.log("Data: ", message.data);
-  //     sendResponse({ success: true });
-  //     return true;
-  //   } else {
-  //     console.log("Unknown action:", message.action);
-  //   }
 });
 
 async function uploadScreenshot(formData) {
   try {
     // Make the API request and wait for the response
     const response = await fetch(
-      import.meta.process.env.VITE_API_URL + "screenshots",
+      "https://designspo-backend.onrender.com/" + "screenshots",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
