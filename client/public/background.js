@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "capture_screenshot") {
     console.log("Capturing screenshot...");
