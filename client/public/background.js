@@ -1,6 +1,3 @@
-import dotenv from "dotenv";
-dotenv.config();
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "capture_screenshot") {
     console.log("Capturing screenshot...");
@@ -14,18 +11,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     uploadScreenshot(message.data)
       .then((res) => {
-        try {
-          const data = JSON.parse(res); // Ensure parsing is safe
-          console.log("Response from server:", data);
-          console.log("Screenshot uploaded successfully.");
-          sendResponse({ success: true });
-        } catch (parseError) {
-          console.error("Error parsing response:", parseError);
-          sendResponse({
-            success: false,
-            error: "Invalid JSON response from server",
-          });
-        }
+        console.log("Response from server:", res);
+        console.log("Screenshot uploaded successfully.");
+        sendResponse({ success: true, data: res });
       })
       .catch((err) => {
         console.error("Error uploading screenshot:", err);
