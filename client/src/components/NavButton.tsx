@@ -43,14 +43,18 @@ function NavButton() {
         }`}
       >
         <button
-          onClick={() => redirectTo("http://localhost:3001/dashboard/")}
+          onClick={() =>
+            redirectTo("https://designspo-webpage.vercel.app/dashboard/")
+          }
           className="text-center rounded-sm p-2 w-full cursor-pointer hover:bg-[#3d3d3d]"
         >
           Dahboard
         </button>
         <hr className="" />
         <button
-          onClick={() => redirectTo("http://localhost:3001/dashboard/profile")}
+          onClick={() =>
+            redirectTo("https://designspo-webpage.vercel.app/dashboard/profile")
+          }
           className="text-center rounded-sm p-2 w-full cursor-pointer hover:bg-[#3d3d3d]"
         >
           Profile
