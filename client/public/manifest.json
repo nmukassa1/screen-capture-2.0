@@ -8,14 +8,14 @@
     "service_worker": "background.js",
     "type": "module"
   },
+  "icons": [
+    "./icon-16.png",
+    "./icon-32.png",
+    "./icon-48.png",
+    "./icon-128.png"
+  ],
   "action": {
     "default_popup": "index.html"
   },
-  "host_permissions": [
-    "<all_urls>",
-    "http://*/*",
-    "https://*/*",
-    "https://*.supabase.co/*",
-    "http://localhost:5173/*"
-  ]
+  "host_permissions": ["https://*.supabase.co/*"]
 }
