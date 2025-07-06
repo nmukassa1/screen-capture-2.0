@@ -75,3 +75,20 @@ export const deleteTag = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to delete tag", message: err });
   }
 };
+
+export const deleteTagByName = async (req: Request, res: Response) => {
+  const { userId, tagName } = req.body;
+  if (!userId || !tagName) {
+    res.status(400).json({ error: "User ID and tag name are required" });
+    return;
+  }
+  console.log(`Deleting tag: ${tagName} for user: ${userId}`);
+
+  try {
+    await tagService.deleteTagByName(userId, tagName);
+    res.status(200).json("Tag deleted");
+  } catch (err) {
+    console.error(`Error deleting tag: ${tagName} for user: ${userId}`, err);
+    res.status(500).json({ error: "Failed to delete tag", message: err });
+  }
+};
