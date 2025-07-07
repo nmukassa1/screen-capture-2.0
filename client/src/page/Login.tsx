@@ -20,14 +20,9 @@ const Login = ({ setUser }: { setUser: (value: User) => void }) => {
     if (error) {
       setError(error.message);
     } else {
-      // await chrome.storage.local.set({ session: data.session });
       localStorage.setItem("session", JSON.stringify(data.session));
-      // await supabase.auth.setSession({
-      //   access_token: data.session.access_token,
-      //   refresh_token: data.session.refresh_token,
-      // });
-
-      // await serviceWorker(data.session.access_token);
+      const session = await supabase.auth.getSession();
+      console.log("Session:", session);
 
       setUser(data.session.user);
       navigate("/dashboard");

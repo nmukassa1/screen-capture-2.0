@@ -16,7 +16,6 @@ export const uploadScreenshot = async (req: Request, res: Response) => {
     const imageBlob = new Blob([imageBuffer], { type: "image/png" });
 
     // Define image path in Supabase Storage
-    // const fileName = `screenshots/${userId}-${Date.now()}.png`;
     const fileName = `${userId}/${Date.now()}.png`;
     const { data, error: uploadError } = await supabase.storage
       .from("screenshots")
