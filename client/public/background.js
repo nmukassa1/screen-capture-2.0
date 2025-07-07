@@ -22,6 +22,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     return true; // Ensures sendResponse is handled asynchronously
   }
+
+  if (message.action === "login") {
+    console.log("Logged in!");
+  }
+  if (message.action === "login-error") {
+    console.error("Login error:", message.error);
+  }
 });
 
 async function uploadScreenshot(formData) {

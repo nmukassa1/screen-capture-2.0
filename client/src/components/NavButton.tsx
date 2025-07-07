@@ -1,15 +1,20 @@
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabase";
+// import { supabase } from "../supabase";
 import { Menu } from "lucide-react";
 import { useState } from "react";
+import { api } from "../api/api";
 
 function NavButton() {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    await chrome.storage.local.remove("session");
-    navigate("/login");
+    try {
+      await api.post("/auth/logout");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Optionally show an error message to the user
+    }
   };
 
   const [displayNav, setDisplayNav] = useState<boolean>(false);
