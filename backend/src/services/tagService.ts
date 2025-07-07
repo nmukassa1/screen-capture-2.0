@@ -29,6 +29,18 @@ export const deleteTag = async (userId: string, tagId: number) => {
   });
 };
 
+export const deleteTagByName = async (userId: string, tagName: string) => {
+  const tag = await prisma.tag.findFirst({
+    where: { name: tagName, userId },
+  });
+
+  if (!tag) throw new Error("Tag not found");
+
+  return await prisma.tag.delete({
+    where: { id: tag.id },
+  });
+};
+
 export const getTagByIds = async (userId: string, tagIds: number[]) => {
   return await prisma.tag.findMany({
     where: { id: { in: tagIds }, userId },

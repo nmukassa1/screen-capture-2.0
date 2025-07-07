@@ -1,41 +1,61 @@
 import { useFormContext } from "../context/FormContext";
 import { FormDataType, Tag } from "../types";
 import { useTagsContext } from "../context/TagsContext";
+// import Spinner from "./Spinner";
+import { LoaderIcon } from "lucide-react";
 
 export function TagSelect() {
   const { formData, setFormData } = useFormContext();
-  const { tags } = useTagsContext();
+  const { tags, isLoading } = useTagsContext();
 
-  if (!tags || tags.length === 0) return null;
+  // if (!tags || tags.length === 0) return null;
+
+  if (isLoading) {
+    return (
+      <div className="w-fit spinner mx-auto">
+        <LoaderIcon />
+      </div>
+    );
+  }
+
+  if (tags.length > 0) {
+    return (
+      <div className="flex flex-col gap-y-[24px] py-4 mt-4 overflow-x-auto">
+        {/* Row 1 */}
+        <div className="flex gap-x-2">
+          {tags
+            .filter((_, index) => index % 2 === 0)
+            .map((tag) => (
+              <TagItem
+                key={tag.id}
+                tag={tag}
+                formData={formData}
+                setFormData={setFormData}
+              />
+            ))}
+        </div>
+
+        {/* Row 2 */}
+        <div className="flex gap-x-2">
+          {tags
+            .filter((_, index) => index % 2 !== 0)
+            .map((tag) => (
+              <TagItem
+                key={tag.id}
+                tag={tag}
+                formData={formData}
+                setFormData={setFormData}
+              />
+            ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-y-[24px] py-4 mt-4 overflow-x-auto">
-      {/* Row 1 */}
       <div className="flex gap-x-2">
-        {tags
-          .filter((_, index) => index % 2 === 0)
-          .map((tag) => (
-            <TagItem
-              key={tag.id}
-              tag={tag}
-              formData={formData}
-              setFormData={setFormData}
-            />
-          ))}
-      </div>
-
-      {/* Row 2 */}
-      <div className="flex gap-x-2">
-        {tags
-          .filter((_, index) => index % 2 !== 0)
-          .map((tag) => (
-            <TagItem
-              key={tag.id}
-              tag={tag}
-              formData={formData}
-              setFormData={setFormData}
-            />
-          ))}
+        <p className="text-center text-gray-500">No tags created</p>
       </div>
     </div>
   );
