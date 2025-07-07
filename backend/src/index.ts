@@ -4,6 +4,7 @@ import fs from "fs-extra";
 import path from "path";
 import tagRoutes from "./routes/tagRoutes";
 import screenshotRoutes from "./routes/screenshotRoutes";
+import authRoutes from "./routes/authRoutes";
 import cookieParser from "cookie-parser";
 import compression from "compression";
 import dotenv from "dotenv";
@@ -30,6 +31,7 @@ app.get("/", (req, res) => {
 
 app.use("/tags", tagRoutes);
 app.use("/screenshots", screenshotRoutes);
+app.use("/auth", authRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
