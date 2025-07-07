@@ -1,4 +1,5 @@
 import prisma from "../prisma";
+import { supabase } from "../supabase/supabase";
 export interface Tag {
   id: number;
 }
@@ -99,9 +100,44 @@ export const deleteScreenshot = async (
   userId: string,
   screenshotId: number
 ) => {
-  return await prisma.screenshot.delete({
+  // Get the screenshot record (to get the file path)
+  const screenshot = await prisma.screenshot.findFirst({
     where: { id: screenshotId, userId },
   });
+
+  if (!screenshot) {
+    console.error("Screenshot not found or unauthorized access attempt");
+
+    throw new Error("Screenshot not found or unauthorized");
+  }
+
+  const extractPathFromUrl = (url: string): string => {
+    const parsedUrl = new URL(url);
+    return parsedUrl.pathname.replace(
+      "/storage/v1/object/public/screenshots/",
+      ""
+    );
+  };
+
+  const imageToDelete = extractPathFromUrl(screenshot.img);
+  console.log("Image to delete", imageToDelete);
+
+  try {
+    // Delete image from Supabase Storage
+    const { error } = await supabase.storage
+      .from("screenshots") // your bucket name
+      .remove([imageToDelete]); // must match key you used when uploading
+
+    if (error) {
+      throw new Error("Storage deletion failed");
+    }
+
+    return await prisma.screenshot.delete({
+      where: { id: screenshotId, userId },
+    });
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 export const addTagToScreenshot = async (
