@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabase";
 
 import { User } from "@supabase/supabase-js";
+import { api } from "../api/api";
 
 const Login = ({ setUser }: { setUser: (value: User) => void }) => {
   const [email, setEmail] = useState("");
@@ -17,12 +18,15 @@ const Login = ({ setUser }: { setUser: (value: User) => void }) => {
       password,
     });
 
+    await api.post("/auth/login", {
+      email,
+      password,
+    });
+
     if (error) {
       setError(error.message);
     } else {
       localStorage.setItem("session", JSON.stringify(data.session));
-      const session = await supabase.auth.getSession();
-      console.log("Session:", session);
 
       setUser(data.session.user);
       navigate("/dashboard");
