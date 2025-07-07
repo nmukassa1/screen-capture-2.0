@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import * as screenshotService from "../services/screenshotService";
 import { uploadScreenshotSchema } from "../validation";
 import { z } from "zod";
-import { supabase } from "../supabase/supabase";
+import { createUserClient, supabase } from "../supabase/supabase";
 
 export const uploadScreenshot = async (req: Request, res: Response) => {
   try {
@@ -17,7 +17,25 @@ export const uploadScreenshot = async (req: Request, res: Response) => {
 
     // Define image path in Supabase Storage
     const fileName = `${userId}/${Date.now()}.png`;
-    const { data, error: uploadError } = await supabase.storage
+    // Restore user session
+    const { data: restoredSession, error } = await supabase.auth.getSession();
+
+    if (error) {
+      console.error("Failed to restore user session:", error);
+      throw new Error(
+        "Failed to restore user session: " + JSON.stringify(error, null, 2)
+      );
+    }
+
+    if (!restoredSession.session) {
+      console.error("Session restoration failed: session is null");
+      throw new Error("Session restoration failed: session is null");
+    }
+    const supabaseClient = createUserClient(
+      restoredSession.session.access_token
+    );
+
+    const { data, error: uploadError } = await supabaseClient.storage
       .from("screenshots")
       .upload(fileName, imageBlob, {
         contentType: "image/png",
@@ -68,9 +86,9 @@ export const uploadScreenshot = async (req: Request, res: Response) => {
 };
 
 export const deleteScreenshot = async (req: Request, res: Response) => {
-  const { user, screenshotId } = req.body;
+  const { user, screenshotId, accessToken } = req.body;
   try {
-    await screenshotService.deleteScreenshot(user, screenshotId);
+    await screenshotService.deleteScreenshot(user, screenshotId, accessToken);
     res.status(204).send("Deleted");
   } catch (error) {
     res.status(500).json({ error: "Failed to delete screenshot" });
@@ -112,12 +130,6 @@ export const getScreenshots = async (req: Request, res: Response) => {
     }
 
     res.json({ screenshots, totalPages });
-
-    // res.json({
-    //   data: screenshots,
-    //   totalPages,
-    //   currentPage: pageNumber,
-    // });
   } catch (err) {
     res
       .status(500)

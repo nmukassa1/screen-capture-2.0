@@ -1,5 +1,5 @@
 import prisma from "../prisma";
-import { supabase } from "../supabase/supabase";
+import { createUserClient, supabase } from "../supabase/supabase";
 export interface Tag {
   id: number;
 }
@@ -98,7 +98,8 @@ export const getScreenshotsByTagName = async (
 };
 export const deleteScreenshot = async (
   userId: string,
-  screenshotId: number
+  screenshotId: number,
+  accessToken: string
 ) => {
   // Get the screenshot record (to get the file path)
   const screenshot = await prisma.screenshot.findFirst({
@@ -120,13 +121,23 @@ export const deleteScreenshot = async (
   };
 
   const imageToDelete = extractPathFromUrl(screenshot.img);
-  console.log("Image to delete", imageToDelete);
 
   try {
-    // Delete image from Supabase Storage
-    const { error } = await supabase.storage
+    // Restore user session
+    if (!accessToken) {
+      throw new Error("Access token is required");
+    }
+
+    const supabaseClient = createUserClient(accessToken);
+
+    const { error } = await supabaseClient.storage
       .from("screenshots") // your bucket name
       .remove([imageToDelete]); // must match key you used when uploading
+
+    // Delete image from Supabase Storage
+    // const { error } = await supabase.storage
+    //   .from("screenshots") // your bucket name
+    //   .remove([imageToDelete]); // must match key you used when uploading
 
     if (error) {
       throw new Error("Storage deletion failed");

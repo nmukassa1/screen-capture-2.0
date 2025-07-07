@@ -25,7 +25,6 @@ function Form({ setScreenshotUploaded }: FormProps) {
                 formData.siteName.slice(1)
               : "No Site Name"}
           </h2>
-          {/* <div className="w-full h-[1px] bg-gray-300 mt-2 mb-4"></div> */}
           <CreateTagForm />
           <SubmitScreenshotForm setScreenshotUploaded={setScreenshotUploaded} />
         </div>

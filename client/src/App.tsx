@@ -7,48 +7,19 @@ import {
 } from "react-router-dom";
 import MainApplication from "./page/MainApplication";
 import Login from "./page/Login";
-import { supabase } from "./supabase";
 import { useUserContext } from "./context/UserContext";
+import { api } from "./api/api";
 
 function App() {
-  //   const [loading, setLoading] = useState(true);
   const { user, setUser } = useUserContext();
 
   useEffect(() => {
     async function restoreSession() {
-      // const result = localStorage.getItem("session");
-      const result = await chrome.storage.local.get("session");
-      if (result.session) {
-        // const session = JSON.parse(result);
-        supabase.auth.setSession(result.session);
-        setUser(result.session.user);
-      }
-      //   setLoading(false);
+      const { data } = await api.get("/auth/restore-session");
+      setUser(data.user);
     }
     restoreSession();
-  }, []);
-
-  useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_, session) => {
-        if (session) {
-          // localStorage.setItem('session', JSON.stringify(session));
-          chrome.storage.local.set({ session });
-          setUser(session.user);
-        } else {
-          // localStorage.removeItem("session");
-          chrome.storage.local.remove("session");
-          setUser(null);
-        }
-      }
-    );
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
-
-  //   if (loading) return <p>Loading...</p>;
+  }, [user, setUser]);
 
   return (
     <Router>

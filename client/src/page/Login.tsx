@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabase";
 
 import { User } from "@supabase/supabase-js";
 import { api } from "../api/api";
@@ -13,24 +12,24 @@ const Login = ({ setUser }: { setUser: (value: User) => void }) => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { data } = await api.post("/auth/login", {
+        email,
+        password,
+      });
 
-    await api.post("/auth/login", {
-      email,
-      password,
-    });
+      const { user } = data;
 
-    if (error) {
-      setError(error.message);
-    } else {
-      localStorage.setItem("session", JSON.stringify(data.session));
+      chrome.runtime.sendMessage({ action: "login", user });
 
-      setUser(data.session.user);
-      navigate("/dashboard");
-      console.log(data);
+      setUser(user);
+      setError("");
+      navigate("/mainApp");
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "An unexpected error occurred"
+      );
+      chrome.runtime.sendMessage({ action: "login-error", error });
     }
   };
 

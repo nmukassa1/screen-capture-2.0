@@ -6,29 +6,52 @@ const router = express.Router();
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
+    console.error("Email and password are required");
     res.status(400).json({ error: "Email and password are required" });
     return;
   }
-  console.log("Login attempt with email:", email);
 
-  //   const { data, error } = await supabase.auth.signInWithPassword({
-  //     email,
-  //     password,
-  //   });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
-  //   if (error) {
-  //     res.status(401).json({ error: error.message });
-  //     return;
-  //   }
+  if (error) {
+    console.error("Login error:", error);
+    res.status(401).json({ error: error.message });
+    return;
+  }
 
-  //   // Store session in local storage or cookie
-  //   res.cookie("session", JSON.stringify(data.session), {
-  //     httpOnly: true,
-  //     secure: process.env.NODE_ENV === "production",
-  //     maxAge: 60 * 60 * 1000, // 1 hour
-  //   });
+  res.json({ session: data.session.access_token, user: data.user });
+});
 
-  //   res.json(data);
+router.get("/restore-session", async (req, res) => {
+  // Retrieve session
+  const { data, error } = await supabase.auth.getSession();
+  // Not authenticated if no session
+  if (error) {
+    console.error("Error restoring session:", error);
+    res.status(401).json({ error: error.message });
+    return;
+  }
+  if (!data.session) {
+    console.error("Session not found");
+    res.status(401).json({ error: "Session not found" });
+    return;
+  }
+  res.status(200).json({ user: data.session.user });
+});
+
+router.post("/logout", async (req, res) => {
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  console.log("User logged out successfully");
+
+  res.status(200).json({ message: "Logged out successfully" });
 });
 
 export default router;
