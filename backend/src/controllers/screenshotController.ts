@@ -6,20 +6,9 @@ import { supabase } from "../supabase/supabase";
 
 export const uploadScreenshot = async (req: Request, res: Response) => {
   try {
-    // const { data: session, error: sessionError } =
-    //   await supabase.auth.getUser();
-    // console.log("Session:", session);
-    // if (sessionError) {
-    //   throw new Error(
-    //     "Failed to get session: " + JSON.stringify(sessionError, null, 2)
-    //   );
-    // }
-
     // Validate request body
     const parsedData = uploadScreenshotSchema.parse(req.body);
     const { siteName, siteUrl, tagIds, userId, image } = parsedData;
-
-    console.log("Parsed Data:", parsedData);
 
     // Convert base64 image to Buffer
     const base64Data = image.replace(/^data:image\/png;base64,/, "");
@@ -27,7 +16,8 @@ export const uploadScreenshot = async (req: Request, res: Response) => {
     const imageBlob = new Blob([imageBuffer], { type: "image/png" });
 
     // Define image path in Supabase Storage
-    const fileName = `screenshots/${userId}-${Date.now()}.png`;
+    // const fileName = `screenshots/${userId}-${Date.now()}.png`;
+    const fileName = `${userId}/${Date.now()}.png`;
     const { data, error: uploadError } = await supabase.storage
       .from("screenshots")
       .upload(fileName, imageBlob, {
@@ -99,21 +89,17 @@ export const getScreenshots = async (req: Request, res: Response) => {
   try {
     let data;
 
-    console.time("Time to get screenshots from DB");
     if (!tag) {
       data = await screenshotService.getScreenshots(userId, skip, pageSize);
-      console.timeEnd("Time to get screenshots from DB");
     } else {
       const tagNames = Array.isArray(tag) ? tag : [tag];
 
-      console.time("Time to get screenshots from DB by tag");
       data = await screenshotService.getScreenshotsByTagName(
         userId,
         tagNames.map((tag) => tag.toString()),
         skip,
         pageSize
       );
-      console.timeEnd("Time to get screenshots from DB by tag");
     }
 
     const screenshots = data[0];
