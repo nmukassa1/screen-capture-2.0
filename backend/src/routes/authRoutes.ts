@@ -1,5 +1,6 @@
 import express from "express";
 import { supabase } from "../supabase/supabase";
+import { authenticate } from "../middlewares/authenticate";
 
 const router = express.Router();
 
@@ -25,7 +26,7 @@ router.post("/login", async (req, res) => {
   res.json({ session: data.session.access_token, user: data.user });
 });
 
-router.post("/logout", async (req, res) => {
+router.post("/logout", authenticate, async (req, res) => {
   const { error } = await supabase.auth.signOut();
   if (error) {
     console.error("Logout error:", error);
