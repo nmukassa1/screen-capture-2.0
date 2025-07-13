@@ -1,4 +1,5 @@
-const apiEndpoint = "https://designspo-backend.onrender.com/";
+// const apiEndpoint = "https://designspo-backend.onrender.com/";
+const apiEndpoint = "http://localhost:4000/";
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "capture_screenshot") {
@@ -7,85 +8,86 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // Keep the message channel open for async response
   }
 
-  if (message.action === "upload_screenshot") {
-    console.log("Uploading screenshot...");
-    console.log("Data: ", message.data);
+  // if (message.action === "upload_screenshot") {
+  //   // Get access token from local storage
 
-    uploadScreenshot(message.data)
-      .then((res) => {
-        console.log("Response from server:", res);
-        console.log("Screenshot uploaded successfully.");
-        sendResponse({ success: true, data: res });
+  //   uploadScreenshot(message.data)
+  //     .then((res) => {
+  //       sendResponse({ success: true, data: res });
+  //     })
+  //     .catch((err) => {
+  //       console.error("Error uploading screenshot:", err);
+  //       sendResponse({ success: false, error: err.message });
+  //     });
+
+  //   return true; // Ensures sendResponse is handled asynchronously
+  // }
+
+  if (message.action === "upload_screenshot") {
+    // Get access token from local storage
+    getSession()
+      .then(async (session) => {
+        const result = await uploadScreenshot(message.data, session);
+
+        sendResponse({ success: true, data: result });
       })
-      .catch((err) => {
-        console.error("Error uploading screenshot:", err);
-        sendResponse({ success: false, error: err.message });
+      .catch((error) => {
+        console.error("Upload error:", error);
+        sendResponse({ success: false, error: error.message });
       });
 
     return true; // Ensures sendResponse is handled asynchronously
   }
 
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === "login") {
-      const { email, password } = message;
+  if (message.action === "login") {
+    const { email, password } = message;
 
-      fetch(apiEndpoint + "auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.error);
-          }
-          console.log("Login successful:", data);
-          // Store user data in local storage
-          chrome.storage.local.set(
-            {
-              user: JSON.stringify(data.user),
-              session: JSON.stringify(data.session),
-            },
-            () => {
-              console.log("User session saved successfully.");
-            }
-          );
-          sendResponse({ success: true, user: data.user });
-        })
-        .catch((error) => {
-          console.error("Login failed:", error);
-          sendResponse({ success: false, error: error.message });
-        });
-
-      // 👇 Important to keep sendResponse alive
-      return true;
-    }
-  });
-
-  if (message.action === "login-error") {
-    console.error("Login error:", message.error);
-  }
-
-  if (message.action === "logout") {
-    console.log("Logged out!");
-    fetch(apiEndpoint + "auth/logout", {
+    fetch(apiEndpoint + "auth/login", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
     })
       .then((response) => response.json())
       .then((data) => {
         if (data.error) {
           throw new Error(data.error);
         }
-        // Clear user data from local storage
-        chrome.storage.local.remove(["user", "session"], () => {
-          console.log("User session cleared successfully.");
-        });
-        sendResponse({ success: true });
+        console.log("Login successful:", data);
+        // Store user data in local storage
+        chrome.storage.local.set(
+          {
+            user: JSON.stringify(data.user),
+            session: JSON.stringify(data.session),
+          },
+          () => {
+            console.log("User session saved successfully.");
+          }
+        );
+        sendResponse({ success: true, user: data.user });
       })
       .catch((error) => {
-        console.error("Logout failed:", error);
+        console.error("Login failed:", error);
+        sendResponse({ success: false, error: error.message });
+      });
+
+    // 👇 Important to keep sendResponse alive
+    return true;
+  }
+
+  if (message.action === "login-error") {
+    console.error("Login error:", message.error);
+  }
+
+  if (message.action === "logout") {
+    // Get session key
+    getSession()
+      .then((session) => {
+        logout(session);
+      })
+      .catch((error) => {
+        console.error("Error getting session:", error);
         sendResponse({ success: false, error: error.message });
       });
   }
@@ -94,8 +96,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.storage.local.get(["user", "session"], (result) => {
       const user = JSON.parse(result.user);
       const session = JSON.parse(result.session);
-      console.log("Restoring session for user:", user);
-      console.log("Session data:", session);
 
       sendResponse({ success: true, user, session });
     });
@@ -103,16 +103,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-async function uploadScreenshot(formData) {
+// async function uploadScreenshot(formData) {
+//   try {
+//     // Make the API request and wait for the response
+//     const response = await fetch(apiEndpoint + "screenshots", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify(formData),
+//     });
+//     const data = await response.json();
+
+//     return data;
+//   } catch (err) {
+//     console.error(err);
+//     return { success: false, error: err.message };
+//   }
+// }
+
+async function uploadScreenshot(formData, session) {
   try {
-    // Make the API request and wait for the response
     const response = await fetch(apiEndpoint + "screenshots", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session}`,
+      },
       body: JSON.stringify(formData),
     });
     const data = await response.json();
-
     return data;
   } catch (err) {
     console.error(err);
@@ -183,4 +201,42 @@ function extractSiteName(url) {
     console.error("Invalid URL:", url);
     return url; // Return the original URL if parsing fails
   }
+}
+
+function getSession() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get("session", (result) => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        const session = JSON.parse(result.session);
+        resolve(session);
+      }
+    });
+  });
+}
+
+function logout(session) {
+  fetch(apiEndpoint + "auth/logout", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session}`, // Include token for authentication
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      // Clear user data from local storage
+      chrome.storage.local.remove(["user", "session"], () => {
+        console.log("User session cleared successfully.");
+      });
+      sendResponse({ success: true });
+    })
+    .catch((error) => {
+      console.error("Logout failed:", error);
+      sendResponse({ success: false, error: error.message });
+    });
 }

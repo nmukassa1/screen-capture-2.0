@@ -1,30 +1,39 @@
-import jwt from "jsonwebtoken";
-import { supabase } from "../supabase/supabase";
-import dotenv from "dotenv";
-dotenv.config();
-
-// If you prefer verifying manually without supabase-js
-const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET; // Find this in Supabase settings
-
 import { Request, Response, NextFunction } from "express";
+import { supabase } from "../supabase/supabase";
 
-export function authenticate(req: Request, res: Response, next: NextFunction) {
-  const token = req.cookies?.["sb-tpuqajccekhicnmlosod-auth-token"];
+export const authenticate = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  let token = req.headers.authorization;
+  // Extract the token from the Authorization header
+  token = token && token.replace("Bearer ", "");
 
   if (!token) {
-    res.status(401).json({ error: "No token" });
+    console.error("No authentication token provided");
+    res.status(401).json({ error: "Unauthorized" });
+    return;
   }
 
-  try {
-    if (!SUPABASE_JWT_SECRET) {
-      throw new Error("SUPABASE_JWT_SECRET is not defined");
-    }
-    const decoded = jwt.verify(token, SUPABASE_JWT_SECRET);
-    console.log("Decoded token:", decoded);
+  supabase.auth
+    .getUser(token)
 
-    // req.user = decoded; // Now req.user has the user's info
-    next();
-  } catch (err) {
-    res.status(401).json({ error: "Invalid token" });
-  }
-}
+    .then(({ data, error }) => {
+      if (error) {
+        console.error("Error fetching user:", error);
+        res.status(401).json({ error: "Invalid token" });
+        return;
+      }
+
+      // req.user = data.user;
+
+      next();
+    })
+
+    .catch((err) => {
+      console.error("Authentication error:", err);
+      res.status(500).json({ error: "Internal server error" });
+      return;
+    });
+};
