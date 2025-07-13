@@ -3,7 +3,7 @@
   "name": "Designspo Extension",
   "version": "1.1",
   "description": "Takes a screenshot of the current tab",
-  "permissions": ["activeTab", "scripting", "tabs"],
+  "permissions": ["activeTab", "scripting", "tabs", "storage"],
   "background": {
     "service_worker": "background.js",
     "type": "module"

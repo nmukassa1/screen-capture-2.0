@@ -31,6 +31,9 @@ export const uploadScreenshot = async (req: Request, res: Response) => {
       console.error("Session restoration failed: session is null");
       throw new Error("Session restoration failed: session is null");
     }
+
+    console.log("Restored session:", restoredSession.session);
+
     const supabaseClient = createUserClient(
       restoredSession.session.access_token
     );

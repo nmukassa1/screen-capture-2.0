@@ -44,9 +44,6 @@ function SubmitScreenshotForm({
         setFormLoading(false);
       }
     );
-
-    // For development purposes
-    console.log("Form Submitted:", formData);
   }
 
   return (

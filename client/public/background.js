@@ -1,3 +1,5 @@
+const apiEndpoint = "https://designspo-backend.onrender.com/";
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "capture_screenshot") {
     console.log("Capturing screenshot...");
@@ -23,25 +25,92 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // Ensures sendResponse is handled asynchronously
   }
 
-  if (message.action === "login") {
-    console.log("Logged in!");
-  }
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === "login") {
+      const { email, password } = message;
+
+      fetch(apiEndpoint + "auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.error);
+          }
+          console.log("Login successful:", data);
+          // Store user data in local storage
+          chrome.storage.local.set(
+            {
+              user: JSON.stringify(data.user),
+              session: JSON.stringify(data.session),
+            },
+            () => {
+              console.log("User session saved successfully.");
+            }
+          );
+          sendResponse({ success: true, user: data.user });
+        })
+        .catch((error) => {
+          console.error("Login failed:", error);
+          sendResponse({ success: false, error: error.message });
+        });
+
+      // 👇 Important to keep sendResponse alive
+      return true;
+    }
+  });
+
   if (message.action === "login-error") {
     console.error("Login error:", message.error);
+  }
+
+  if (message.action === "logout") {
+    console.log("Logged out!");
+    fetch(apiEndpoint + "auth/logout", {
+      method: "POST",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        // Clear user data from local storage
+        chrome.storage.local.remove(["user", "session"], () => {
+          console.log("User session cleared successfully.");
+        });
+        sendResponse({ success: true });
+      })
+      .catch((error) => {
+        console.error("Logout failed:", error);
+        sendResponse({ success: false, error: error.message });
+      });
+  }
+
+  if (message.action === "restore-session") {
+    chrome.storage.local.get(["user", "session"], (result) => {
+      const user = JSON.parse(result.user);
+      const session = JSON.parse(result.session);
+      console.log("Restoring session for user:", user);
+      console.log("Session data:", session);
+
+      sendResponse({ success: true, user, session });
+    });
+    return true;
   }
 });
 
 async function uploadScreenshot(formData) {
   try {
     // Make the API request and wait for the response
-    const response = await fetch(
-      "https://designspo-backend.onrender.com/" + "screenshots",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      }
-    );
+    const response = await fetch(apiEndpoint + "screenshots", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
     const data = await response.json();
 
     return data;
