@@ -8,18 +8,27 @@ import {
 import MainApplication from "./page/MainApplication";
 import Login from "./page/Login";
 import { useUserContext } from "./context/UserContext";
-import { api } from "./api/api";
+// import { api } from "./api/api";
 
 function App() {
   const { user, setUser } = useUserContext();
 
   useEffect(() => {
     async function restoreSession() {
-      const { data } = await api.get("/auth/restore-session");
-      setUser(data.user);
+      chrome.runtime.sendMessage(
+        { action: "restore-session" },
+        async (response) => {
+          if (response && response.user) {
+            setUser(response.user);
+            return;
+          }
+        }
+      );
+      // const { data } = await api.get("/auth/restore-session");
+      // setUser(data.user);
     }
     restoreSession();
-  }, [user, setUser]);
+  }, []);
 
   return (
     <Router>

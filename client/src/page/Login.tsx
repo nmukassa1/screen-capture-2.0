@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { User } from "@supabase/supabase-js";
-import { api } from "../api/api";
+// import { api } from "../api/api";
 
 const Login = ({ setUser }: { setUser: (value: User) => void }) => {
   const [email, setEmail] = useState("");
@@ -10,21 +10,51 @@ const Login = ({ setUser }: { setUser: (value: User) => void }) => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  // const handleLogin = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   try {
+  //     const { data } = await api.post("/auth/login", {
+  //       email,
+  //       password,
+  //     });
+
+  //     const { user } = data;
+
+  //     chrome.runtime.sendMessage({ action: "login", user });
+
+  //     setUser(user);
+  //     setError("");
+  //     navigate("/mainApp");
+  //   } catch (error) {
+  //     setError(
+  //       error instanceof Error ? error.message : "An unexpected error occurred"
+  //     );
+  //     chrome.runtime.sendMessage({ action: "login-error", error });
+  //   }
+  // };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { data } = await api.post("/auth/login", {
-        email,
-        password,
-      });
-
-      const { user } = data;
-
-      chrome.runtime.sendMessage({ action: "login", user });
-
-      setUser(user);
-      setError("");
-      navigate("/mainApp");
+      chrome.runtime.sendMessage(
+        { action: "login", email, password },
+        async (response) => {
+          if (chrome.runtime.lastError) {
+            console.error(
+              "Error sending message:",
+              chrome.runtime.lastError.message
+            );
+            return;
+          }
+          if (response && response.user) {
+            setUser(response.user);
+            setError("");
+            navigate("/mainApp");
+          } else {
+            setError("Login failed. Please check your credentials.");
+          }
+        }
+      );
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "An unexpected error occurred"
@@ -76,33 +106,3 @@ const Login = ({ setUser }: { setUser: (value: User) => void }) => {
 };
 
 export default Login;
-
-// async function serviceWorker(data: string) {
-//   chrome.runtime.sendMessage(
-//     { action: "set_cookie", data },
-//     async (response) => {
-//       if (chrome.runtime.lastError) {
-//         console.error(
-//           "Error sending message:",
-//           chrome.runtime.lastError.message
-//         );
-//         return;
-//       }
-//       if (response && response.success) {
-//         const [tab] = await chrome.tabs.query({
-//           active: true,
-//           lastFocusedWindow: true,
-//         });
-//         chrome.scripting.executeScript({
-//           args: [response],
-//           target: { tabId: tab.id! },
-//           func: (response) => {
-//             console.log("Response received:", response);
-//           },
-//         });
-//       } else {
-//         console.error("Error:", response);
-//       }
-//     }
-//   );
-// }

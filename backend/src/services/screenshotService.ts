@@ -121,6 +121,7 @@ export const deleteScreenshot = async (
   };
 
   const imageToDelete = extractPathFromUrl(screenshot.img);
+  console.log("Image to delete:", imageToDelete);
 
   try {
     // Restore user session
@@ -130,9 +131,11 @@ export const deleteScreenshot = async (
 
     const supabaseClient = createUserClient(accessToken);
 
-    const { error } = await supabaseClient.storage
+    const { data, error } = await supabaseClient.storage
       .from("screenshots") // your bucket name
       .remove([imageToDelete]); // must match key you used when uploading
+
+    console.log("Supabase storage remove data:", data);
 
     // Delete image from Supabase Storage
     // const { error } = await supabase.storage

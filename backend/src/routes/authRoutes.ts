@@ -25,23 +25,6 @@ router.post("/login", async (req, res) => {
   res.json({ session: data.session.access_token, user: data.user });
 });
 
-router.get("/restore-session", async (req, res) => {
-  // Retrieve session
-  const { data, error } = await supabase.auth.getSession();
-  // Not authenticated if no session
-  if (error) {
-    console.error("Error restoring session:", error);
-    res.status(401).json({ error: error.message });
-    return;
-  }
-  if (!data.session) {
-    console.error("Session not found");
-    res.status(401).json({ error: "Session not found" });
-    return;
-  }
-  res.status(200).json({ user: data.session.user });
-});
-
 router.post("/logout", async (req, res) => {
   const { error } = await supabase.auth.signOut();
   if (error) {
@@ -50,8 +33,8 @@ router.post("/logout", async (req, res) => {
     return;
   }
   console.log("User logged out successfully");
-
   res.status(200).json({ message: "Logged out successfully" });
+  return;
 });
 
 export default router;
