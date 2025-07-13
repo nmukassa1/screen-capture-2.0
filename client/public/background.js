@@ -1,5 +1,4 @@
-// const apiEndpoint = "https://designspo-backend.onrender.com/";
-const apiEndpoint = "http://localhost:4000/";
+const apiEndpoint = "https://designspo-backend.onrender.com/";
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "capture_screenshot") {
