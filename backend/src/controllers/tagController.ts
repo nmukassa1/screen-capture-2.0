@@ -66,7 +66,7 @@ export const createTag = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteTag = async (req: Request, res: Response) => {
+export const deleteTagById = async (req: Request, res: Response) => {
   const { userId, tagId } = req.body;
   try {
     await tagService.deleteTag(userId, tagId);
