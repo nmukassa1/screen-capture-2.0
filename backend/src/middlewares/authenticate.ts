@@ -26,8 +26,6 @@ export const authenticate = (
         return;
       }
 
-      // req.user = data.user;
-
       next();
     })
 

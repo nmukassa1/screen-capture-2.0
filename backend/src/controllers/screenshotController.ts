@@ -89,7 +89,13 @@ export const uploadScreenshot = async (req: Request, res: Response) => {
 };
 
 export const deleteScreenshot = async (req: Request, res: Response) => {
-  const { user, screenshotId, accessToken } = req.body;
+  const { user, screenshotId } = req.body;
+  const accessToken = req.headers.authorization?.replace("Bearer ", "");
+  if (!accessToken) {
+    console.error("No access token provided");
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
   try {
     await screenshotService.deleteScreenshot(user, screenshotId, accessToken);
     res.status(204).send("Deleted");
@@ -100,6 +106,7 @@ export const deleteScreenshot = async (req: Request, res: Response) => {
 
 export const getScreenshots = async (req: Request, res: Response) => {
   const { userId } = req.params;
+  // log acccessToken from middleware
   let { tag, page = "1" } = req.query; // Default page = 1
 
   const pageNumber = parseInt(page as string, 10);
@@ -134,6 +141,7 @@ export const getScreenshots = async (req: Request, res: Response) => {
 
     res.json({ screenshots, totalPages });
   } catch (err) {
+    console.error("Error fetching screenshots:", err);
     res
       .status(500)
       .json({ error: "Failed to fetch screenshots", details: err });
@@ -181,6 +189,7 @@ export const deleteTagFromScreenshot = async (req: Request, res: Response) => {
     );
     res.json(screenshot);
   } catch (error) {
+    console.error("Error deleting tag from screenshot:", error);
     res
       .status(500)
       .json({ error: "Failed to delete tags from screenshot", err: error });

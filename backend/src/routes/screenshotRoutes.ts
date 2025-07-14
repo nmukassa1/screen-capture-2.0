@@ -4,10 +4,14 @@ import { authenticate } from "../middlewares/authenticate";
 
 const router = express.Router();
 
-router.get("/:userId", screenshotController.getScreenshots);
+router.get("/:userId", authenticate, screenshotController.getScreenshots);
 router.post("/", authenticate, screenshotController.uploadScreenshot);
-router.delete("/", screenshotController.deleteScreenshot);
-router.patch("/addTag", screenshotController.addTagToScreenshot);
-router.patch("/removeTag", screenshotController.deleteTagFromScreenshot);
+router.delete("/", authenticate, screenshotController.deleteScreenshot);
+router.patch("/addTag", authenticate, screenshotController.addTagToScreenshot);
+router.patch(
+  "/removeTag",
+  authenticate,
+  screenshotController.deleteTagFromScreenshot
+);
 
 export default router;
