@@ -38,6 +38,36 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // Ensures sendResponse is handled asynchronously
   }
 
+  if (message.action === "create_tag") {
+    const { name, userId } = message.payload;
+
+    getSession()
+      .then(async (session) => {
+        const response = await fetch(apiEndpoint + "tags", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session}`,
+          },
+          body: JSON.stringify({ name, userId }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Tag creation failed");
+        }
+
+        sendResponse({ success: true, tag: data });
+      })
+      .catch((error) => {
+        console.error("Error creating tag:", error);
+        sendResponse({ success: false, error: error.message });
+      });
+
+    return true; // Keep message channel open
+  }
+
   if (message.action === "login") {
     const { email, password } = message;
 
@@ -58,7 +88,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         chrome.storage.local.set(
           {
             user: JSON.stringify(data.user),
-            session: JSON.stringify(data.session),
+            // session: JSON.stringify(data.session),
+            session: data.session,
           },
           () => {
             console.log("User session saved successfully.");
@@ -101,10 +132,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "restore-session") {
     chrome.storage.local.get(["user", "session"], (result) => {
       const user = JSON.parse(result.user);
-      const session = JSON.parse(result.session);
+      const session = result.session;
 
       sendResponse({ success: true, user, session });
     });
+    return true;
+  }
+
+  if (message.action === "logSession") {
+    console.log("Session data:", message.session);
+    sendResponse({ success: true });
     return true;
   }
 });
@@ -215,7 +252,7 @@ function getSession() {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError);
       } else {
-        const session = JSON.parse(result.session);
+        const session = result.session;
         resolve(session);
       }
     });

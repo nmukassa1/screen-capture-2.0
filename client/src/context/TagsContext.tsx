@@ -21,10 +21,27 @@ export const TagsProvider = ({ children }: { children: ReactNode }) => {
   const [tags, setTags] = useState<Tag[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { user } = useUserContext();
+  const getSession = async () => {
+    const result = await chrome.storage.local.get("session");
+    chrome.runtime.sendMessage({
+      action: "logSession",
+      session: result.session,
+    });
+    return result.session; // Access the "session" value
+  };
 
   useEffect(() => {
     async function getTags() {
-      const response = await api.get("/tags/" + user?.id);
+      const session = await getSession();
+      if (!session) {
+        setIsLoading(false);
+        return;
+      }
+      const response = await api.get("/tags/" + user?.id, {
+        headers: {
+          Authorization: `Bearer ${session}`,
+        },
+      });
       console.log("Tags:", response.data);
       setTags(response.data);
       setIsLoading(false);
