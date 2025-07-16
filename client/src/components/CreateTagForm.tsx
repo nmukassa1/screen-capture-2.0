@@ -6,7 +6,7 @@ interface FormData {
 }
 
 import { useState } from "react";
-import { api } from "../api/api";
+// import { api } from "../api/api";
 import { useTagsContext } from "../context/TagsContext";
 import { Tag } from "../types";
 import { useUserContext } from "../context/UserContext";
@@ -24,21 +24,33 @@ export function CreateTagForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsLoading(true);
+
     try {
-      const response = await api.post("/tags", formData);
-      if (response.status === 400) {
-        throw new Error("Validation failed");
-      }
-      console.log("Tag created:", response.data);
-      setTags((prev: Tag[]) => [...prev, response.data]);
-      setFormData({ name: "", userId: user?.id || "1" });
+      chrome.runtime.sendMessage(
+        {
+          action: "create_tag",
+          payload: formData,
+        },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            throw new Error(chrome.runtime.lastError.message);
+          }
+
+          if (!response.success) {
+            throw new Error(response.error || "Tag creation failed");
+          }
+
+          console.log("Tag created:", response.tag);
+          setTags((prev: Tag[]) => [...prev, response.tag]);
+          setFormData({ name: "", userId: user?.id || "1" });
+        }
+      );
     } catch (error) {
       console.error("Error:", error);
     } finally {
       setIsLoading(false);
     }
   }
-
   return (
     <>
       <form onSubmit={handleSubmit} className="flex items-center gap-2">

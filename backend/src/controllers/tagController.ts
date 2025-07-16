@@ -4,22 +4,24 @@ import { createTagSchema } from "../validation";
 
 export const getAllTags = async (req: Request, res: Response) => {
   const { user } = req.params;
+  console.log("Fetching all tags for user:", user);
 
   if (!user) {
+    console.error("User not found in request parameters");
+
     res.status(400).json({ error: "User not found" });
     return;
   }
 
   try {
-    console.time("Time to get all tags from DB");
     const tags = await tagService.getAllTags(user);
-    console.timeEnd("Time to get all tags from DB");
     if (!tags) {
       res.status(404).json({ error: "Tags not found" });
       return;
     }
     res.json(tags);
   } catch (error) {
+    console.error("Error fetching tags:", error);
     res.status(500).json({ error: "Failed to fetch tags" });
   }
 };
