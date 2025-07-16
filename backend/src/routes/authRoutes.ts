@@ -1,6 +1,7 @@
 import express from "express";
-import { supabase } from "../supabase/supabase";
+import { supabase, supabaseSERVICE } from "../supabase/supabase";
 import { authenticate } from "../middlewares/authenticate";
+import prisma from "../prisma";
 
 const router = express.Router();
 
@@ -36,6 +37,52 @@ router.post("/logout", authenticate, async (req, res) => {
   console.log("User logged out successfully");
   res.status(200).json({ message: "Logged out successfully" });
   return;
+});
+
+router.delete("/delete-account/:id", authenticate, async (req, res) => {
+  const { id } = req.params;
+
+  // Delete user from Supabase Auth
+  const { error: authError } = await supabaseSERVICE.auth.admin.deleteUser(id);
+  if (authError) {
+    console.error("Delete account error:", authError);
+    res.status(500).json({ error: authError.message });
+    return;
+  }
+
+  try {
+    //Delete users SCREENSHOTS in DB using prisma
+    const screenshotDeleteResult = await prisma.screenshot.deleteMany({
+      where: { userId: id },
+    });
+
+    if (!screenshotDeleteResult) {
+      throw new Error(screenshotDeleteResult);
+    }
+    //Delete users TAGS in DB
+    const tagDeleteResult = await prisma.tag.deleteMany({
+      where: { userId: id },
+    });
+
+    if (!tagDeleteResult) {
+      throw new Error(tagDeleteResult);
+    }
+    //Delete files from STORAGE
+    // const { error: storageError } = await supabaseSERVICE.storage
+    //   .from("screenshots")
+    //   .remove([`public/${id}`]);
+
+    // if (storageError) {
+    //   console.error("Storage deletion error:", storageError);
+    //   throw new Error(storageError.message);
+    // }
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).json({ error: "Failed to delete user data" });
+    return;
+  }
+
+  res.status(200).json({ message: "Account deleted successfully" });
 });
 
 export default router;

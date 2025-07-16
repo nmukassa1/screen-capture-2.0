@@ -83,12 +83,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Get session key
     getSession()
       .then((session) => {
+        console.log("Logging out with session:", session);
+
         logout(session);
+      })
+      .then(() => {
+        sendResponse({ success: true });
       })
       .catch((error) => {
         console.error("Error getting session:", error);
         sendResponse({ success: false, error: error.message });
       });
+
+    return true;
   }
 
   if (message.action === "restore-session") {
@@ -232,7 +239,6 @@ function logout(session) {
       chrome.storage.local.remove(["user", "session"], () => {
         console.log("User session cleared successfully.");
       });
-      sendResponse({ success: true });
     })
     .catch((error) => {
       console.error("Logout failed:", error);

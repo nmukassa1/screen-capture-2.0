@@ -2,10 +2,12 @@ import { useNavigate } from "react-router-dom";
 // import { supabase } from "../supabase";
 import { Menu } from "lucide-react";
 import { useState } from "react";
+import { useUserContext } from "../context/UserContext";
 // import { api } from "../api/api";
 
 function NavButton() {
   const navigate = useNavigate();
+  const { setUser } = useUserContext();
 
   const handleLogout = async () => {
     chrome.runtime.sendMessage({ action: "logout" }, async (response) => {
@@ -17,6 +19,7 @@ function NavButton() {
         return;
       }
       if (response && response.success) {
+        setUser(null);
         navigate("/login");
       }
     });
