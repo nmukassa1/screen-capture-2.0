@@ -30,11 +30,11 @@ export const deleteTag = async (userId: string, tagId: number) => {
 };
 
 export const deleteTagByName = async (userId: string, tagName: string) => {
-  console.log(`Deleting tag: ${tagName} for user: ${userId}`);
-
   const tag = await prisma.tag.findFirst({
     where: { name: tagName, userId },
   });
+
+  console.log("(SERVICE) Deleting tags:", tag);
 
   if (!tag) throw new Error("Tag not found");
 

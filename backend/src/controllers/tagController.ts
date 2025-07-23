@@ -4,7 +4,6 @@ import { createTagSchema } from "../validation";
 
 export const getAllTags = async (req: Request, res: Response) => {
   const { user } = req.params;
-  console.log("Fetching all tags for user:", user);
 
   if (!user) {
     console.error("User not found in request parameters");
@@ -84,13 +83,15 @@ export const deleteTagByName = async (req: Request, res: Response) => {
     res.status(400).json({ error: "User ID and tag name are required" });
     return;
   }
-  console.log(`Deleting tag: ${tagName} for user: ${userId}`);
 
   try {
     await tagService.deleteTagByName(userId, tagName);
     res.status(200).json("Tag deleted");
   } catch (err) {
-    console.error(`Error deleting tag: ${tagName} for user: ${userId}`, err);
+    console.error(
+      `Error deleting tag: ${tagName} for user ${userId}:`,
+      (err as Error).message
+    );
     res.status(500).json({ error: "Failed to delete tag", message: err });
   }
 };

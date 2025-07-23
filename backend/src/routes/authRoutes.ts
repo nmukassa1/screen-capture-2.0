@@ -68,14 +68,14 @@ router.delete("/delete-account/:id", authenticate, async (req, res) => {
       throw new Error(tagDeleteResult);
     }
     //Delete files from STORAGE
-    // const { error: storageError } = await supabaseSERVICE.storage
-    //   .from("screenshots")
-    //   .remove([`public/${id}`]);
+    const { error: storageError } = await supabaseSERVICE.storage
+      .from("screenshots")
+      .remove([`${id}`]);
 
-    // if (storageError) {
-    //   console.error("Storage deletion error:", storageError);
-    //   throw new Error(storageError.message);
-    // }
+    if (storageError) {
+      console.error("Storage deletion error:", storageError);
+      throw new Error(storageError.message);
+    }
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ error: "Failed to delete user data" });
