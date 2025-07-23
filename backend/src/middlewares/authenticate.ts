@@ -10,8 +10,6 @@ export const authenticate = (
   // Extract the token from the Authorization header
   token = token && token.replace("Bearer ", "");
 
-  console.log("Authenticating user with token:", token);
-
   if (!token) {
     console.error("No authentication token provided");
     res.status(401).json({ error: "Unauthorized" });
