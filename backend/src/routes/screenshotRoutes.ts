@@ -14,4 +14,10 @@ router.patch(
   screenshotController.deleteTagFromScreenshot
 );
 
+router.patch(
+  "/update-description",
+  authenticate,
+  screenshotController.updateScreenshotDescription
+);
+
 export default router;

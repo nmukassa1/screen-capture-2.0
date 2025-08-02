@@ -3,6 +3,7 @@ import * as screenshotService from "../services/screenshotService";
 import { uploadScreenshotSchema } from "../validation";
 import { z } from "zod";
 import { createUserClient, supabase } from "../supabase/supabase";
+import { error } from "console";
 
 export const uploadScreenshot = async (req: Request, res: Response) => {
   try {
@@ -193,5 +194,49 @@ export const deleteTagFromScreenshot = async (req: Request, res: Response) => {
     res
       .status(500)
       .json({ error: "Failed to delete tags from screenshot", err: error });
+  }
+};
+
+const updateDescriptionSchema = z.object({
+  screenshotId: z.number(),
+  description: z.string().optional(),
+});
+
+export const updateScreenshotDescription = async (
+  req: Request,
+  res: Response
+) => {
+  const { userId, description, id } = req.body;
+
+  // Validate screenshot id & description
+  const parsedData = updateDescriptionSchema.safeParse({
+    screenshotId: id,
+    description: description,
+  });
+
+  if (!parsedData.success) {
+    console.error("Invalid input data:", parsedData.error);
+    res.status(400).json({
+      error: "Invalid input",
+      details: parsedData.error.errors,
+    });
+    return;
+  }
+  try {
+    const screenshotDescription =
+      await screenshotService.updateScreenshotDescription(
+        userId,
+        parsedData.data.screenshotId,
+        parsedData.data.description || ""
+      );
+
+    res.status(200).json({ message: "Description Updated", status: "OK" });
+    // res.json({ status: true });
+  } catch (error) {
+    console.error("Error updating screenshot description:", error);
+    // res.json({ status: false });
+    res
+      .status(500)
+      .json({ error: "Failed to update screenshot description", err: error });
   }
 };
