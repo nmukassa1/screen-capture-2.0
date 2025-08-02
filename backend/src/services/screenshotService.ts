@@ -35,8 +35,7 @@ export const getScreenshots = async (
       where: { userId },
       skip,
       take,
-      // Removed invalid orderBy clause as 'createdAt' does not exist in the type
-      include: { tags: { include: { tag: true } } },
+      include: { tags: { include: { tag: true } }, description: true },
       orderBy: { createdAt: "desc" },
     }),
     prisma.screenshot.count({
@@ -182,4 +181,38 @@ export const deleteTagFromScreenshot = async (
       },
     },
   });
+};
+
+export const updateScreenshotDescription = async (
+  userId: string,
+  screenshotId: number,
+  description: string | ""
+) => {
+  // First, ensure the screenshot belongs to the user (optional auth check)
+  const screenshot = await prisma.screenshot.findFirst({
+    where: { id: screenshotId, userId },
+  });
+
+  if (!screenshot) {
+    throw new Error("Screenshot not found.");
+  }
+
+  // Does screenshotId exist in description table
+  const descriptionExists = await prisma.screenshotDescription.findFirst({
+    where: { screenshotId },
+  });
+
+  if (!descriptionExists) {
+    return await prisma.screenshotDescription.create({
+      data: {
+        content: description,
+        screenshotId,
+      },
+    });
+  } else {
+    return await prisma.screenshotDescription.update({
+      where: { screenshotId }, // because it's unique
+      data: { content: description },
+    });
+  }
 };

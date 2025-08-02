@@ -8,13 +8,21 @@ datasource db {
 }
 
 model Screenshot {
-  id       Int     @id @default(autoincrement())
-  img      String
-  siteName String
-  siteUrl  String
-  userId   String  @db.Uuid // Store the Supabase Auth User ID
-    createdAt DateTime @default(now()) 
-  tags     ScreenshotTag[]
+  id          Int                   @id @default(autoincrement())
+  img         String
+  siteName    String
+  siteUrl     String
+  userId      String                @db.Uuid
+  createdAt   DateTime              @default(now())
+  tags        ScreenshotTag[]
+  description ScreenshotDescription?
+}
+
+model ScreenshotDescription {
+  id           Int        @id @default(autoincrement())
+  content      String
+  screenshot   Screenshot @relation(fields: [screenshotId], references: [id], onDelete: Cascade)
+  screenshotId Int        @unique // enforce 1-to-1 relationship
 }
 
 model Tag {
@@ -32,4 +40,11 @@ model ScreenshotTag {
   tag          Tag        @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([screenshotId, tagId]) // Composite primary key
+}
+
+model WaitingList {
+ id Int @id @default(autoincrement())
+ email String
+ created_at DateTime @default(now()) 
+
 }
