@@ -81,7 +81,7 @@ export const getScreenshotsByTagName = async (
       },
       skip,
       take,
-      include: { tags: { include: { tag: true } } },
+      include: { tags: { include: { tag: true } }, description: true },
 
       orderBy: { createdAt: "desc" },
     }),
