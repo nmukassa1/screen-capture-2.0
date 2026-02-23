@@ -42,32 +42,35 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteTagFromScreenshot = exports.addTagToScreenshot = exports.getScreenshotById = exports.getScreenshots = exports.deleteScreenshot = exports.uploadScreenshot = void 0;
+exports.updateScreenshotDescription = exports.deleteTagFromScreenshot = exports.addTagToScreenshot = exports.getScreenshotById = exports.getScreenshots = exports.deleteScreenshot = exports.uploadScreenshot = void 0;
 const screenshotService = __importStar(require("../services/screenshotService"));
 const validation_1 = require("../validation");
 const zod_1 = require("zod");
 const supabase_1 = require("../supabase/supabase");
 const uploadScreenshot = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // const { data: session, error: sessionError } =
-        //   await supabase.auth.getUser();
-        // console.log("Session:", session);
-        // if (sessionError) {
-        //   throw new Error(
-        //     "Failed to get session: " + JSON.stringify(sessionError, null, 2)
-        //   );
-        // }
         // Validate request body
         const parsedData = validation_1.uploadScreenshotSchema.parse(req.body);
         const { siteName, siteUrl, tagIds, userId, image } = parsedData;
-        console.log("Parsed Data:", parsedData);
         // Convert base64 image to Buffer
         const base64Data = image.replace(/^data:image\/png;base64,/, "");
         const imageBuffer = Buffer.from(base64Data, "base64");
         const imageBlob = new Blob([imageBuffer], { type: "image/png" });
         // Define image path in Supabase Storage
-        const fileName = `screenshots/${userId}-${Date.now()}.png`;
-        const { data, error: uploadError } = yield supabase_1.supabase.storage
+        const fileName = `${userId}/${Date.now()}.png`;
+        // Restore user session
+        const { data: restoredSession, error } = yield supabase_1.supabase.auth.getSession();
+        if (error) {
+            console.error("Failed to restore user session:", error);
+            throw new Error("Failed to restore user session: " + JSON.stringify(error, null, 2));
+        }
+        if (!restoredSession.session) {
+            console.error("Session restoration failed: session is null");
+            throw new Error("Session restoration failed: session is null");
+        }
+        console.log("Restored session:", restoredSession.session);
+        const supabaseClient = (0, supabase_1.createUserClient)(restoredSession.session.access_token);
+        const { data, error: uploadError } = yield supabaseClient.storage
             .from("screenshots")
             .upload(fileName, imageBlob, {
             contentType: "image/png",
@@ -105,9 +108,16 @@ const uploadScreenshot = (req, res) => __awaiter(void 0, void 0, void 0, functio
 });
 exports.uploadScreenshot = uploadScreenshot;
 const deleteScreenshot = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { user, screenshotId } = req.body;
+    const accessToken = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.replace("Bearer ", "");
+    if (!accessToken) {
+        console.error("No access token provided");
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+    }
     try {
-        yield screenshotService.deleteScreenshot(user, screenshotId);
+        yield screenshotService.deleteScreenshot(user, screenshotId, accessToken);
         res.status(204).send("Deleted");
     }
     catch (error) {
@@ -117,6 +127,7 @@ const deleteScreenshot = (req, res) => __awaiter(void 0, void 0, void 0, functio
 exports.deleteScreenshot = deleteScreenshot;
 const getScreenshots = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userId } = req.params;
+    // log acccessToken from middleware
     let { tag, page = "1" } = req.query; // Default page = 1
     const pageNumber = parseInt(page, 10);
     const pageSize = 16;
@@ -138,13 +149,9 @@ const getScreenshots = (req, res) => __awaiter(void 0, void 0, void 0, function*
             return;
         }
         res.json({ screenshots, totalPages });
-        // res.json({
-        //   data: screenshots,
-        //   totalPages,
-        //   currentPage: pageNumber,
-        // });
     }
     catch (err) {
+        console.error("Error fetching screenshots:", err);
         res
             .status(500)
             .json({ error: "Failed to fetch screenshots", details: err });
@@ -183,9 +190,43 @@ const deleteTagFromScreenshot = (req, res) => __awaiter(void 0, void 0, void 0, 
         res.json(screenshot);
     }
     catch (error) {
+        console.error("Error deleting tag from screenshot:", error);
         res
             .status(500)
             .json({ error: "Failed to delete tags from screenshot", err: error });
     }
 });
 exports.deleteTagFromScreenshot = deleteTagFromScreenshot;
+const updateDescriptionSchema = zod_1.z.object({
+    screenshotId: zod_1.z.number(),
+    description: zod_1.z.string().optional(),
+});
+const updateScreenshotDescription = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId, description, id } = req.body;
+    // Validate screenshot id & description
+    const parsedData = updateDescriptionSchema.safeParse({
+        screenshotId: id,
+        description: description,
+    });
+    if (!parsedData.success) {
+        console.error("Invalid input data:", parsedData.error);
+        res.status(400).json({
+            error: "Invalid input",
+            details: parsedData.error.errors,
+        });
+        return;
+    }
+    try {
+        const screenshotDescription = yield screenshotService.updateScreenshotDescription(userId, parsedData.data.screenshotId, parsedData.data.description || "");
+        res.status(200).json({ message: "Description Updated", status: "OK" });
+        // res.json({ status: true });
+    }
+    catch (error) {
+        console.error("Error updating screenshot description:", error);
+        // res.json({ status: false });
+        res
+            .status(500)
+            .json({ error: "Failed to update screenshot description", err: error });
+    }
+});
+exports.updateScreenshotDescription = updateScreenshotDescription;

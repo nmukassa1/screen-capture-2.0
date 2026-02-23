@@ -38,8 +38,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const tagController = __importStar(require("../controllers/tagController"));
+const authenticate_1 = require("../middlewares/authenticate");
 const router = express_1.default.Router();
-router.get("/:user", tagController.getAllTags);
-router.post("/", tagController.createTag);
-router.delete("/", tagController.deleteTag);
+router.get("/:user", authenticate_1.authenticate, tagController.getAllTags);
+router.post("/", authenticate_1.authenticate, tagController.createTag);
+router.delete("/", tagController.deleteTagById);
+router.delete("/delete", authenticate_1.authenticate, tagController.deleteTagByName);
 exports.default = router;

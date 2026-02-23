@@ -10,7 +10,7 @@ import compression from "compression";
 import dotenv from "dotenv";
 dotenv.config();
 
-const PORT = parseInt(process.env.SERVER_PORT || "3000", 10);
+const PORT = parseInt(process.env.SERVER_PORT || "4000", 10);
 
 const app: Application = express();
 
@@ -20,7 +20,7 @@ fs.ensureDirSync(UPLOAD_DIR);
 
 // Middleware
 app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ limit: "10mb", extended: true }));
+app.use(express.urlencoded({ limit: "10mb", extended: true })); 
 // app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }));
 app.use(cors({ origin: "*" }));
 app.use(cookieParser());
