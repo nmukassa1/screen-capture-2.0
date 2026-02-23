@@ -12,8 +12,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteTagFromScreenshot = exports.addTagToScreenshot = exports.deleteScreenshot = exports.getScreenshotsByTagName = exports.getScreenshotById = exports.getScreenshots = exports.uploadScreenshot = void 0;
+exports.updateScreenshotDescription = exports.deleteTagFromScreenshot = exports.addTagToScreenshot = exports.deleteScreenshot = exports.getScreenshotsByTagName = exports.getScreenshotById = exports.getScreenshots = exports.uploadScreenshot = void 0;
 const prisma_1 = __importDefault(require("../prisma"));
+const supabase_1 = require("../supabase/supabase");
 const uploadScreenshot = (userId, img, siteName, siteUrl, tagIds) => __awaiter(void 0, void 0, void 0, function* () {
     const screenshot = yield prisma_1.default.screenshot.create({
         data: {
@@ -34,8 +35,7 @@ const getScreenshots = (userId, skip, take) => __awaiter(void 0, void 0, void 0,
             where: { userId },
             skip,
             take,
-            // Removed invalid orderBy clause as 'createdAt' does not exist in the type
-            include: { tags: { include: { tag: true } } },
+            include: { tags: { include: { tag: true } }, description: true },
             orderBy: { createdAt: "desc" },
         }),
         prisma_1.default.screenshot.count({
@@ -69,7 +69,7 @@ const getScreenshotsByTagName = (userId, tagNames, skip, take) => __awaiter(void
             },
             skip,
             take,
-            include: { tags: { include: { tag: true } } },
+            include: { tags: { include: { tag: true } }, description: true },
             orderBy: { createdAt: "desc" },
         }),
         prisma_1.default.screenshot.count({
@@ -82,10 +82,45 @@ const getScreenshotsByTagName = (userId, tagNames, skip, take) => __awaiter(void
     return [screenshots, totalCount];
 });
 exports.getScreenshotsByTagName = getScreenshotsByTagName;
-const deleteScreenshot = (userId, screenshotId) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield prisma_1.default.screenshot.delete({
+const deleteScreenshot = (userId, screenshotId, accessToken) => __awaiter(void 0, void 0, void 0, function* () {
+    // Get the screenshot record (to get the file path)
+    const screenshot = yield prisma_1.default.screenshot.findFirst({
         where: { id: screenshotId, userId },
     });
+    if (!screenshot) {
+        console.error("Screenshot not found or unauthorized access attempt");
+        throw new Error("Screenshot not found or unauthorized");
+    }
+    const extractPathFromUrl = (url) => {
+        const parsedUrl = new URL(url);
+        return parsedUrl.pathname.replace("/storage/v1/object/public/screenshots/", "");
+    };
+    const imageToDelete = extractPathFromUrl(screenshot.img);
+    console.log("Image to delete:", imageToDelete);
+    try {
+        // Restore user session
+        if (!accessToken) {
+            throw new Error("Access token is required");
+        }
+        const supabaseClient = (0, supabase_1.createUserClient)(accessToken);
+        const { data, error } = yield supabaseClient.storage
+            .from("screenshots") // your bucket name
+            .remove([imageToDelete]); // must match key you used when uploading
+        console.log("Supabase storage remove data:", data);
+        // Delete image from Supabase Storage
+        // const { error } = await supabase.storage
+        //   .from("screenshots") // your bucket name
+        //   .remove([imageToDelete]); // must match key you used when uploading
+        if (error) {
+            throw new Error("Storage deletion failed");
+        }
+        return yield prisma_1.default.screenshot.delete({
+            where: { id: screenshotId, userId },
+        });
+    }
+    catch (error) {
+        console.error(error);
+    }
 });
 exports.deleteScreenshot = deleteScreenshot;
 const addTagToScreenshot = (userId, screenshotId, tagId) => __awaiter(void 0, void 0, void 0, function* () {
@@ -110,3 +145,31 @@ const deleteTagFromScreenshot = (userId, screenshotId, tagId) => __awaiter(void 
     });
 });
 exports.deleteTagFromScreenshot = deleteTagFromScreenshot;
+const updateScreenshotDescription = (userId, screenshotId, description) => __awaiter(void 0, void 0, void 0, function* () {
+    // First, ensure the screenshot belongs to the user (optional auth check)
+    const screenshot = yield prisma_1.default.screenshot.findFirst({
+        where: { id: screenshotId, userId },
+    });
+    if (!screenshot) {
+        throw new Error("Screenshot not found.");
+    }
+    // Does screenshotId exist in description table
+    const descriptionExists = yield prisma_1.default.screenshotDescription.findFirst({
+        where: { screenshotId },
+    });
+    if (!descriptionExists) {
+        return yield prisma_1.default.screenshotDescription.create({
+            data: {
+                content: description,
+                screenshotId,
+            },
+        });
+    }
+    else {
+        return yield prisma_1.default.screenshotDescription.update({
+            where: { screenshotId }, // because it's unique
+            data: { content: description },
+        });
+    }
+});
+exports.updateScreenshotDescription = updateScreenshotDescription;

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTagByIds = exports.deleteTag = exports.createTag = exports.getTagByName = exports.getAllTags = void 0;
+exports.getTagByIds = exports.deleteTagByName = exports.deleteTag = exports.createTag = exports.getTagByName = exports.getAllTags = void 0;
 const prisma_1 = __importDefault(require("../prisma"));
 const getAllTags = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     return yield prisma_1.default.tag.findMany({
@@ -40,6 +40,18 @@ const deleteTag = (userId, tagId) => __awaiter(void 0, void 0, void 0, function*
     });
 });
 exports.deleteTag = deleteTag;
+const deleteTagByName = (userId, tagName) => __awaiter(void 0, void 0, void 0, function* () {
+    const tag = yield prisma_1.default.tag.findFirst({
+        where: { name: tagName, userId },
+    });
+    console.log("(SERVICE) Deleting tags:", tag);
+    if (!tag)
+        throw new Error("Tag not found");
+    return yield prisma_1.default.tag.delete({
+        where: { id: tag.id },
+    });
+});
+exports.deleteTagByName = deleteTagByName;
 const getTagByIds = (userId, tagIds) => __awaiter(void 0, void 0, void 0, function* () {
     return yield prisma_1.default.tag.findMany({
         where: { id: { in: tagIds }, userId },

@@ -42,12 +42,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteTag = exports.createTag = exports.getTagByName = exports.getAllTags = void 0;
+exports.deleteTagByName = exports.deleteTagById = exports.createTag = exports.getTagByName = exports.getAllTags = void 0;
 const tagService = __importStar(require("../services/tagService"));
 const validation_1 = require("../validation");
 const getAllTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { user } = req.params;
     if (!user) {
+        console.error("User not found in request parameters");
         res.status(400).json({ error: "User not found" });
         return;
     }
@@ -60,6 +61,7 @@ const getAllTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         res.json(tags);
     }
     catch (error) {
+        console.error("Error fetching tags:", error);
         res.status(500).json({ error: "Failed to fetch tags" });
     }
 });
@@ -81,7 +83,7 @@ const createTag = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (!parsedBody.success) {
             // If validation fails, send a response with the validation error details
             res.status(400).json({
-                error: 'Validation failed',
+                error: "Validation failed",
                 issues: parsedBody.error.errors,
             });
             return;
@@ -89,7 +91,7 @@ const createTag = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { name, userId } = parsedBody.data;
         const tagExist = yield tagService.getTagByName(userId, name);
         if (tagExist) {
-            res.status(400).json({ error: 'Tag already exists' });
+            res.status(400).json({ error: "Tag already exists" });
             return;
         }
         const tag = yield tagService.createTag(userId, name);
@@ -97,18 +99,34 @@ const createTag = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         // res.status(201).json({ message: 'Tag created' });
     }
     catch (error) {
-        res.status(500).json({ error: 'Failed to create tag' });
+        res.status(500).json({ error: "Failed to create tag" });
     }
 });
 exports.createTag = createTag;
-const deleteTag = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteTagById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userId, tagId } = req.body;
     try {
         yield tagService.deleteTag(userId, tagId);
-        res.status(200).json('Tag deleted');
+        res.status(200).json("Tag deleted");
     }
     catch (err) {
         res.status(500).json({ error: "Failed to delete tag", message: err });
     }
 });
-exports.deleteTag = deleteTag;
+exports.deleteTagById = deleteTagById;
+const deleteTagByName = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId, tagName } = req.body;
+    if (!userId || !tagName) {
+        res.status(400).json({ error: "User ID and tag name are required" });
+        return;
+    }
+    try {
+        yield tagService.deleteTagByName(userId, tagName);
+        res.status(200).json("Tag deleted");
+    }
+    catch (err) {
+        console.error(`Error deleting tag: ${tagName} for user ${userId}:`, err.message);
+        res.status(500).json({ error: "Failed to delete tag", message: err });
+    }
+});
+exports.deleteTagByName = deleteTagByName;

@@ -38,11 +38,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const screenshotController = __importStar(require("../controllers/screenshotController"));
+const authenticate_1 = require("../middlewares/authenticate");
 const router = express_1.default.Router();
-router.get("/:userId", screenshotController.getScreenshots);
-// router.post("/", upload.single("img"), screenshotController.uploadScreenshot);
-router.post("/", screenshotController.uploadScreenshot);
-router.delete("/", screenshotController.deleteScreenshot);
-router.patch("/addTag", screenshotController.addTagToScreenshot);
-router.patch("/removeTag", screenshotController.deleteTagFromScreenshot);
+router.get("/:userId", authenticate_1.authenticate, screenshotController.getScreenshots);
+router.post("/", authenticate_1.authenticate, screenshotController.uploadScreenshot);
+router.delete("/", authenticate_1.authenticate, screenshotController.deleteScreenshot);
+router.patch("/addTag", authenticate_1.authenticate, screenshotController.addTagToScreenshot);
+router.patch("/removeTag", authenticate_1.authenticate, screenshotController.deleteTagFromScreenshot);
+router.patch("/update-description", authenticate_1.authenticate, screenshotController.updateScreenshotDescription);
 exports.default = router;

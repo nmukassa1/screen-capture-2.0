@@ -9,7 +9,9 @@ const fs_extra_1 = __importDefault(require("fs-extra"));
 const path_1 = __importDefault(require("path"));
 const tagRoutes_1 = __importDefault(require("./routes/tagRoutes"));
 const screenshotRoutes_1 = __importDefault(require("./routes/screenshotRoutes"));
+const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const compression_1 = __importDefault(require("compression"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const PORT = parseInt(process.env.SERVER_PORT || "3000", 10);
@@ -20,13 +22,16 @@ fs_extra_1.default.ensureDirSync(UPLOAD_DIR);
 // Middleware
 app.use(express_1.default.json({ limit: "10mb" }));
 app.use(express_1.default.urlencoded({ limit: "10mb", extended: true }));
-app.use((0, cors_1.default)({ origin: process.env.CORS_ORIGIN, credentials: true }));
+// app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }));
+app.use((0, cors_1.default)({ origin: "*" }));
 app.use((0, cookie_parser_1.default)());
+app.use((0, compression_1.default)());
 app.get("/", (req, res) => {
     res.json("Hello World");
 });
 app.use("/tags", tagRoutes_1.default);
 app.use("/screenshots", screenshotRoutes_1.default);
+app.use("/auth", authRoutes_1.default);
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
