@@ -110,9 +110,11 @@ export const getScreenshots = async (req: Request, res: Response) => {
   // log acccessToken from middleware
   let { tag, page = "1" } = req.query; // Default page = 1
 
-  const pageNumber = parseInt(page as string, 10);
+  // const pageNumber = parseInt(page as string, 10);
   const pageSize = 16;
-  const skip = (pageNumber - 1) * pageSize;
+  // const skip = (pageNumber - 1) * pageSize;
+  const pageNumber = parseInt(page as string, 10);
+  const skip = Math.max(0, (pageNumber - 1) * pageSize); // Ensure skip is non-negative
 
   try {
     let data;
