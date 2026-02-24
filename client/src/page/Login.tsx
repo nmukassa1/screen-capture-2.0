@@ -10,29 +10,6 @@ const Login = ({ setUser }: { setUser: (value: User) => void }) => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // const handleLogin = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   try {
-  //     const { data } = await api.post("/auth/login", {
-  //       email,
-  //       password,
-  //     });
-
-  //     const { user } = data;
-
-  //     chrome.runtime.sendMessage({ action: "login", user });
-
-  //     setUser(user);
-  //     setError("");
-  //     navigate("/mainApp");
-  //   } catch (error) {
-  //     setError(
-  //       error instanceof Error ? error.message : "An unexpected error occurred"
-  //     );
-  //     chrome.runtime.sendMessage({ action: "login-error", error });
-  //   }
-  // };
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
