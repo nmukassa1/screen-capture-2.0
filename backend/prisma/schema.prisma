@@ -1,10 +1,13 @@
+// Prisma + Supabase Postgres: https://supabase.com/docs/guides/database/prisma
 generator client {
   provider = "prisma-client-js"
 }
 
+
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Screenshot {
