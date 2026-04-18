@@ -3,7 +3,9 @@ import dotenv from "dotenv";
 import path from "path";
 
 // Load .env from backend root — not from cwd (nodemon from monorepo root would skip backend/.env)
-dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+const backendRoot = path.resolve(__dirname, "../..");
+dotenv.config({ path: path.join(backendRoot, ".env") });
+dotenv.config({ path: path.join(backendRoot, ".env.local"), override: true });
 
 const supabaseUrl = process.env.SUPABASE_URL || "";
 // Supabase dashboard calls this the "anon" / "public" key; support both names
