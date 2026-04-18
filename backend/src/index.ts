@@ -2,7 +2,9 @@ import dotenv from "dotenv";
 import path from "path";
 
 // Must run before other imports so DATABASE_URL / Supabase env are set when Prisma & routes load
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
+const backendRoot = path.resolve(__dirname, "..");
+dotenv.config({ path: path.join(backendRoot, ".env") });
+dotenv.config({ path: path.join(backendRoot, ".env.local"), override: true });
 
 import express, { Application } from "express";
 import cors from "cors";
