@@ -1,14 +1,17 @@
+import dotenv from "dotenv";
+import path from "path";
+
+// Must run before other imports so DATABASE_URL / Supabase env are set when Prisma & routes load
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+
 import express, { Application } from "express";
 import cors from "cors";
 import fs from "fs-extra";
-import path from "path";
 import tagRoutes from "./routes/tagRoutes";
 import screenshotRoutes from "./routes/screenshotRoutes";
 import authRoutes from "./routes/authRoutes";
 import cookieParser from "cookie-parser";
 import compression from "compression";
-import dotenv from "dotenv";
-dotenv.config();
 
 const PORT = parseInt(process.env.SERVER_PORT || "4000", 10);
 

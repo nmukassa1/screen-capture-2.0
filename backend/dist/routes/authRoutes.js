@@ -48,6 +48,13 @@ router.post("/logout", authenticate_1.authenticate, (req, res) => __awaiter(void
 }));
 router.delete("/delete-account/:id", authenticate_1.authenticate, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
+    if (!supabase_1.supabaseSERVICE) {
+        console.error("SUPABASE_SERVICE_ROLE_KEY is not configured");
+        res.status(503).json({
+            error: "Account deletion is not configured on this server (missing service role key).",
+        });
+        return;
+    }
     // Delete user from Supabase Auth
     const { error: authError } = yield supabase_1.supabaseSERVICE.auth.admin.deleteUser(id);
     if (authError) {
