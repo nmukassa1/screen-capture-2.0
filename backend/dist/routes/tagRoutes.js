@@ -42,6 +42,6 @@ const authenticate_1 = require("../middlewares/authenticate");
 const router = express_1.default.Router();
 router.get("/:user", authenticate_1.authenticate, tagController.getAllTags);
 router.post("/", authenticate_1.authenticate, tagController.createTag);
-router.delete("/", tagController.deleteTagById);
+router.delete("/", authenticate_1.authenticate, tagController.deleteTagById);
 router.delete("/delete", authenticate_1.authenticate, tagController.deleteTagByName);
 exports.default = router;
