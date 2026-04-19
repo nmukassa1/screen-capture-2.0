@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import * as tagService from "../services/tagService";
 import { createTagSchema } from "../validation";
+import { ensureSameUser } from "../middlewares/ensureSameUser";
 
 export const getAllTags = async (req: Request, res: Response) => {
   const { user } = req.params;
@@ -12,13 +13,11 @@ export const getAllTags = async (req: Request, res: Response) => {
     return;
   }
 
+  if (!ensureSameUser(req, res, user)) return;
+
   try {
     const tags = await tagService.getAllTags(user);
-    if (!tags) {
-      res.status(404).json({ error: "Tags not found" });
-      return;
-    }
-    res.json(tags);
+    res.json(tags ?? []);
   } catch (error) {
     console.error("Error fetching tags:", error);
     res.status(500).json({ error: "Failed to fetch tags" });
@@ -53,6 +52,8 @@ export const createTag = async (req: Request, res: Response) => {
 
     const { name, userId } = parsedBody.data;
 
+    if (!ensureSameUser(req, res, userId)) return;
+
     const tagExist = await tagService.getTagByName(userId, name);
     if (tagExist) {
       res.status(400).json({ error: "Tag already exists" });
@@ -69,6 +70,8 @@ export const createTag = async (req: Request, res: Response) => {
 
 export const deleteTagById = async (req: Request, res: Response) => {
   const { userId, tagId } = req.body;
+  if (!ensureSameUser(req, res, userId)) return;
+
   try {
     await tagService.deleteTag(userId, tagId);
     res.status(200).json("Tag deleted");
@@ -83,6 +86,8 @@ export const deleteTagByName = async (req: Request, res: Response) => {
     res.status(400).json({ error: "User ID and tag name are required" });
     return;
   }
+
+  if (!ensureSameUser(req, res, userId)) return;
 
   try {
     await tagService.deleteTagByName(userId, tagName);
