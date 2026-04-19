@@ -9,7 +9,9 @@ const supabase_js_1 = require("@supabase/supabase-js");
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 // Load .env from backend root — not from cwd (nodemon from monorepo root would skip backend/.env)
-dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "../../.env") });
+const backendRoot = path_1.default.resolve(__dirname, "../..");
+dotenv_1.default.config({ path: path_1.default.join(backendRoot, ".env") });
+dotenv_1.default.config({ path: path_1.default.join(backendRoot, ".env.local"), override: true });
 const supabaseUrl = process.env.SUPABASE_URL || "";
 // Supabase dashboard calls this the "anon" / "public" key; support both names
 const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || "";
