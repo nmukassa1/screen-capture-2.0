@@ -45,6 +45,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteTagByName = exports.deleteTagById = exports.createTag = exports.getTagByName = exports.getAllTags = void 0;
 const tagService = __importStar(require("../services/tagService"));
 const validation_1 = require("../validation");
+const ensureSameUser_1 = require("../middlewares/ensureSameUser");
 const getAllTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { user } = req.params;
     if (!user) {
@@ -52,13 +53,11 @@ const getAllTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         res.status(400).json({ error: "User not found" });
         return;
     }
+    if (!(0, ensureSameUser_1.ensureSameUser)(req, res, user))
+        return;
     try {
         const tags = yield tagService.getAllTags(user);
-        if (!tags) {
-            res.status(404).json({ error: "Tags not found" });
-            return;
-        }
-        res.json(tags);
+        res.json(tags !== null && tags !== void 0 ? tags : []);
     }
     catch (error) {
         console.error("Error fetching tags:", error);
@@ -89,6 +88,8 @@ const createTag = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             return;
         }
         const { name, userId } = parsedBody.data;
+        if (!(0, ensureSameUser_1.ensureSameUser)(req, res, userId))
+            return;
         const tagExist = yield tagService.getTagByName(userId, name);
         if (tagExist) {
             res.status(400).json({ error: "Tag already exists" });
@@ -105,6 +106,8 @@ const createTag = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 exports.createTag = createTag;
 const deleteTagById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userId, tagId } = req.body;
+    if (!(0, ensureSameUser_1.ensureSameUser)(req, res, userId))
+        return;
     try {
         yield tagService.deleteTag(userId, tagId);
         res.status(200).json("Tag deleted");
@@ -120,6 +123,8 @@ const deleteTagByName = (req, res) => __awaiter(void 0, void 0, void 0, function
         res.status(400).json({ error: "User ID and tag name are required" });
         return;
     }
+    if (!(0, ensureSameUser_1.ensureSameUser)(req, res, userId))
+        return;
     try {
         yield tagService.deleteTagByName(userId, tagName);
         res.status(200).json("Tag deleted");

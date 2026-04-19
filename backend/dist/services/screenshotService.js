@@ -16,6 +16,15 @@ exports.updateScreenshotDescription = exports.deleteTagFromScreenshot = exports.
 const prisma_1 = __importDefault(require("../prisma"));
 const supabase_1 = require("../supabase/supabase");
 const uploadScreenshot = (userId, img, siteName, siteUrl, tagIds) => __awaiter(void 0, void 0, void 0, function* () {
+    if (tagIds === null || tagIds === void 0 ? void 0 : tagIds.length) {
+        const owned = yield prisma_1.default.tag.findMany({
+            where: { userId, id: { in: tagIds } },
+            select: { id: true },
+        });
+        if (owned.length !== tagIds.length) {
+            throw new Error("One or more tags are invalid or do not belong to this user");
+        }
+    }
     const screenshot = yield prisma_1.default.screenshot.create({
         data: {
             userId,
@@ -54,7 +63,7 @@ const getScreenshotById = (userId, screenshotId) => __awaiter(void 0, void 0, vo
 exports.getScreenshotById = getScreenshotById;
 const getScreenshotsByTagName = (userId, tagNames, skip, take) => __awaiter(void 0, void 0, void 0, function* () {
     const tags = yield prisma_1.default.tag.findMany({
-        where: { name: { in: tagNames } },
+        where: { userId, name: { in: tagNames } },
         select: { id: true },
     });
     const tagIds = tags.map((tag) => tag.id);
@@ -120,10 +129,15 @@ const deleteScreenshot = (userId, screenshotId, accessToken) => __awaiter(void 0
     }
     catch (error) {
         console.error(error);
+        throw error;
     }
 });
 exports.deleteScreenshot = deleteScreenshot;
 const addTagToScreenshot = (userId, screenshotId, tagId) => __awaiter(void 0, void 0, void 0, function* () {
+    const tag = yield prisma_1.default.tag.findFirst({ where: { id: tagId, userId } });
+    if (!tag) {
+        throw new Error("Tag not found or does not belong to this user");
+    }
     return yield prisma_1.default.screenshot.update({
         where: { id: screenshotId, userId },
         data: {

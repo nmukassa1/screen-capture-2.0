@@ -2,44 +2,33 @@ import { Request, Response } from "express";
 import * as screenshotService from "../services/screenshotService";
 import { uploadScreenshotSchema } from "../validation";
 import { z } from "zod";
-import { createUserClient, supabase } from "../supabase/supabase";
-import { error } from "console";
+import { createUserClient } from "../supabase/supabase";
+import { ensureSameUser } from "../middlewares/ensureSameUser";
 
 export const uploadScreenshot = async (req: Request, res: Response) => {
   try {
-    // Validate request body
     const parsedData = uploadScreenshotSchema.parse(req.body);
     const { siteName, siteUrl, tagIds, userId, image } = parsedData;
 
-    // Convert base64 image to Buffer
+    if (!ensureSameUser(req, res, userId)) return;
+
+    const authUserId = req.authUser!.id;
+    const accessToken =
+      req.headers.authorization?.replace(/^Bearer\s+/i, "") ?? "";
+    if (!accessToken) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
     const base64Data = image.replace(/^data:image\/png;base64,/, "");
     const imageBuffer = Buffer.from(base64Data, "base64");
     const imageBlob = new Blob([imageBuffer], { type: "image/png" });
 
-    // Define image path in Supabase Storage
-    const fileName = `${userId}/${Date.now()}.png`;
-    // Restore user session
-    const { data: restoredSession, error } = await supabase.auth.getSession();
+    // Storage key is scoped to the JWT user (enforce user-scoped bucket policies in Supabase).
+    const fileName = `${authUserId}/${Date.now()}.png`;
+    const supabaseClient = createUserClient(accessToken);
 
-    if (error) {
-      console.error("Failed to restore user session:", error);
-      throw new Error(
-        "Failed to restore user session: " + JSON.stringify(error, null, 2)
-      );
-    }
-
-    if (!restoredSession.session) {
-      console.error("Session restoration failed: session is null");
-      throw new Error("Session restoration failed: session is null");
-    }
-
-    console.log("Restored session:", restoredSession.session);
-
-    const supabaseClient = createUserClient(
-      restoredSession.session.access_token
-    );
-
-    const { data, error: uploadError } = await supabaseClient.storage
+    const { error: uploadError } = await supabaseClient.storage
       .from("screenshots")
       .upload(fileName, imageBlob, {
         contentType: "image/png",
@@ -54,35 +43,30 @@ export const uploadScreenshot = async (req: Request, res: Response) => {
 
     const imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/screenshots/${fileName}`;
 
-    // Save screenshot details in the database
     const screenshot = await screenshotService.uploadScreenshot(
-      userId,
+      authUserId,
       imageUrl,
       siteName,
       siteUrl,
       tagIds
     );
 
-    // Return the updated screenshot with relationships
     const updatedScreenshot = await screenshotService.getScreenshotById(
-      userId,
+      authUserId,
       screenshot.id
     );
-    console.log(updatedScreenshot);
 
     res.status(201).json(updatedScreenshot);
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ errors: error.errors });
     } else if (error instanceof Error) {
-      // Handle the error as an instance of the built-in Error class
       console.error(error.message);
       res.status(500).json({
         errorMessage: "Failed to upload screenshot",
         error: error.message,
       });
     } else {
-      // Handle unexpected error types
       console.error("Unexpected error:", error);
       res.status(500).json({ errorMessage: "An unexpected error occurred" });
     }
@@ -90,31 +74,42 @@ export const uploadScreenshot = async (req: Request, res: Response) => {
 };
 
 export const deleteScreenshot = async (req: Request, res: Response) => {
-  const { user, screenshotId } = req.body;
-  const accessToken = req.headers.authorization?.replace("Bearer ", "");
+  const { userId, screenshotId } = req.body;
+  if (!ensureSameUser(req, res, userId)) return;
+
+  const accessToken =
+    req.headers.authorization?.replace(/^Bearer\s+/i, "") ?? "";
   if (!accessToken) {
-    console.error("No access token provided");
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
+
   try {
-    await screenshotService.deleteScreenshot(user, screenshotId, accessToken);
-    res.status(204).send("Deleted");
+    await screenshotService.deleteScreenshot(
+      userId,
+      Number(screenshotId),
+      accessToken
+    );
+    res.status(204).send();
   } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (message.includes("not found")) {
+      res.status(404).json({ error: message });
+      return;
+    }
     res.status(500).json({ error: "Failed to delete screenshot" });
   }
 };
 
 export const getScreenshots = async (req: Request, res: Response) => {
   const { userId } = req.params;
-  // log acccessToken from middleware
-  let { tag, page = "1" } = req.query; // Default page = 1
+  if (!ensureSameUser(req, res, userId)) return;
 
-  // const pageNumber = parseInt(page as string, 10);
+  let { tag, page = "1" } = req.query;
+
   const pageSize = 16;
-  // const skip = (pageNumber - 1) * pageSize;
   const pageNumber = parseInt(page as string, 10);
-  const skip = Math.max(0, (pageNumber - 1) * pageSize); // Ensure skip is non-negative
+  const skip = Math.max(0, (pageNumber - 1) * pageSize);
 
   try {
     let data;
@@ -137,27 +132,23 @@ export const getScreenshots = async (req: Request, res: Response) => {
 
     const totalPages = Math.ceil(Number(totalCount) / pageSize);
 
-    if (Array.isArray(screenshots) && screenshots.length === 0) {
-      res.status(404).json({ error: "No screenshots found" });
-      return;
-    }
-
     res.json({ screenshots, totalPages });
   } catch (err) {
     console.error("Error fetching screenshots:", err);
     res
       .status(500)
       .json({ error: "Failed to fetch screenshots", details: err });
-    return;
   }
 };
 
 export const getScreenshotById = async (req: Request, res: Response) => {
   const { user, screenshotId } = req.params;
+  if (!ensureSameUser(req, res, user)) return;
+
   try {
     const screenshot = await screenshotService.getScreenshotById(
       user,
-      parseInt(screenshotId)
+      parseInt(screenshotId, 10)
     );
     res.json(screenshot);
   } catch (error) {
@@ -167,15 +158,21 @@ export const getScreenshotById = async (req: Request, res: Response) => {
 
 export const addTagToScreenshot = async (req: Request, res: Response) => {
   const { userId, screenshotId, tagId } = req.body;
+  if (!ensureSameUser(req, res, userId)) return;
 
   try {
     const screenshot = await screenshotService.addTagToScreenshot(
       userId,
-      parseInt(screenshotId),
-      tagId
+      parseInt(String(screenshotId), 10),
+      Number(tagId)
     );
     res.json(screenshot);
   } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (message.includes("Tag not found")) {
+      res.status(400).json({ error: message });
+      return;
+    }
     res
       .status(500)
       .json({ error: "Failed to add tags to screenshot", err: error });
@@ -184,11 +181,13 @@ export const addTagToScreenshot = async (req: Request, res: Response) => {
 
 export const deleteTagFromScreenshot = async (req: Request, res: Response) => {
   const { userId, screenshotId, tagId } = req.body;
+  if (!ensureSameUser(req, res, userId)) return;
+
   try {
     const screenshot = await screenshotService.deleteTagFromScreenshot(
       userId,
-      parseInt(screenshotId),
-      parseInt(tagId)
+      parseInt(String(screenshotId), 10),
+      parseInt(String(tagId), 10)
     );
     res.json(screenshot);
   } catch (error) {
@@ -210,7 +209,8 @@ export const updateScreenshotDescription = async (
 ) => {
   const { userId, description, id } = req.body;
 
-  // Validate screenshot id & description
+  if (!ensureSameUser(req, res, userId)) return;
+
   const parsedData = updateDescriptionSchema.safeParse({
     screenshotId: id,
     description: description,
@@ -225,18 +225,15 @@ export const updateScreenshotDescription = async (
     return;
   }
   try {
-    const screenshotDescription =
-      await screenshotService.updateScreenshotDescription(
-        userId,
-        parsedData.data.screenshotId,
-        parsedData.data.description || ""
-      );
+    await screenshotService.updateScreenshotDescription(
+      userId,
+      parsedData.data.screenshotId,
+      parsedData.data.description || ""
+    );
 
     res.status(200).json({ message: "Description Updated", status: "OK" });
-    // res.json({ status: true });
   } catch (error) {
     console.error("Error updating screenshot description:", error);
-    // res.json({ status: false });
     res
       .status(500)
       .json({ error: "Failed to update screenshot description", err: error });

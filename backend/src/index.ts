@@ -6,6 +6,8 @@ const backendRoot = path.resolve(__dirname, "..");
 dotenv.config({ path: path.join(backendRoot, ".env") });
 dotenv.config({ path: path.join(backendRoot, ".env.local"), override: true });
 
+import "./types/express-augment";
+
 import express, { Application } from "express";
 import cors from "cors";
 import fs from "fs-extra";
@@ -14,6 +16,7 @@ import screenshotRoutes from "./routes/screenshotRoutes";
 import authRoutes from "./routes/authRoutes";
 import cookieParser from "cookie-parser";
 import compression from "compression";
+import { buildCorsOptions } from "./corsOptions";
 
 const PORT = parseInt(process.env.SERVER_PORT || "4000", 10);
 
@@ -26,8 +29,7 @@ fs.ensureDirSync(UPLOAD_DIR);
 // Middleware
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true })); 
-// app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }));
-app.use(cors({ origin: "*" }));
+app.use(cors(buildCorsOptions()));
 app.use(cookieParser());
 app.use(compression());
 
