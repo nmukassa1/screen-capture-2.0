@@ -26,6 +26,13 @@ export const authenticate = (
         return;
       }
 
+      const user = data.user;
+      if (!user?.id) {
+        res.status(401).json({ error: "Invalid token" });
+        return;
+      }
+
+      req.authUser = { id: user.id, email: user.email };
       next();
     })
 

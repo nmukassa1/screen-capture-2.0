@@ -19,6 +19,12 @@ const authenticate = (req, res, next) => {
             res.status(401).json({ error: "Invalid token" });
             return;
         }
+        const user = data.user;
+        if (!(user === null || user === void 0 ? void 0 : user.id)) {
+            res.status(401).json({ error: "Invalid token" });
+            return;
+        }
+        req.authUser = { id: user.id, email: user.email };
         next();
     })
         .catch((err) => {

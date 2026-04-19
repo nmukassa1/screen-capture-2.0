@@ -6,7 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 // Must run before other imports so DATABASE_URL / Supabase env are set when Prisma & routes load
-dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "../.env") });
+const backendRoot = path_1.default.resolve(__dirname, "..");
+dotenv_1.default.config({ path: path_1.default.join(backendRoot, ".env") });
+dotenv_1.default.config({ path: path_1.default.join(backendRoot, ".env.local"), override: true });
+require("./types/express-augment");
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const fs_extra_1 = __importDefault(require("fs-extra"));
@@ -15,6 +18,7 @@ const screenshotRoutes_1 = __importDefault(require("./routes/screenshotRoutes"))
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const compression_1 = __importDefault(require("compression"));
+const corsOptions_1 = require("./corsOptions");
 const PORT = parseInt(process.env.SERVER_PORT || "4000", 10);
 const app = (0, express_1.default)();
 // Ensure upload directory exists
@@ -23,8 +27,7 @@ fs_extra_1.default.ensureDirSync(UPLOAD_DIR);
 // Middleware
 app.use(express_1.default.json({ limit: "10mb" }));
 app.use(express_1.default.urlencoded({ limit: "10mb", extended: true }));
-// app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }));
-app.use((0, cors_1.default)({ origin: "*" }));
+app.use((0, cors_1.default)((0, corsOptions_1.buildCorsOptions)()));
 app.use((0, cookie_parser_1.default)());
 app.use((0, compression_1.default)());
 app.get("/", (req, res) => {

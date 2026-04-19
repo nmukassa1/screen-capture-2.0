@@ -1,5 +1,5 @@
 import prisma from "../prisma";
-import { createUserClient, supabase } from "../supabase/supabase";
+import { createUserClient } from "../supabase/supabase";
 export interface Tag {
   id: number;
 }
@@ -11,6 +11,18 @@ export const uploadScreenshot = async (
   siteUrl: string,
   tagIds?: number[]
 ) => {
+  if (tagIds?.length) {
+    const owned = await prisma.tag.findMany({
+      where: { userId, id: { in: tagIds } },
+      select: { id: true },
+    });
+    if (owned.length !== tagIds.length) {
+      throw new Error(
+        "One or more tags are invalid or do not belong to this user"
+      );
+    }
+  }
+
   const screenshot = await prisma.screenshot.create({
     data: {
       userId,
@@ -63,7 +75,7 @@ export const getScreenshotsByTagName = async (
   take: number
 ) => {
   const tags = await prisma.tag.findMany({
-    where: { name: { in: tagNames } },
+    where: { userId, name: { in: tagNames } },
     select: { id: true },
   });
 
@@ -150,6 +162,7 @@ export const deleteScreenshot = async (
     });
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
@@ -158,6 +171,11 @@ export const addTagToScreenshot = async (
   screenshotId: number,
   tagId: number
 ) => {
+  const tag = await prisma.tag.findFirst({ where: { id: tagId, userId } });
+  if (!tag) {
+    throw new Error("Tag not found or does not belong to this user");
+  }
+
   return await prisma.screenshot.update({
     where: { id: screenshotId, userId },
     data: {

@@ -42,6 +42,11 @@ router.post("/logout", authenticate, async (req, res) => {
 router.delete("/delete-account/:id", authenticate, async (req, res) => {
   const { id } = req.params;
 
+  if (!req.authUser || id !== req.authUser.id) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
   if (!supabaseSERVICE) {
     console.error("SUPABASE_SERVICE_ROLE_KEY is not configured");
     res.status(503).json({
@@ -61,21 +66,13 @@ router.delete("/delete-account/:id", authenticate, async (req, res) => {
 
   try {
     //Delete users SCREENSHOTS in DB using prisma
-    const screenshotDeleteResult = await prisma.screenshot.deleteMany({
+    await prisma.screenshot.deleteMany({
       where: { userId: id },
     });
 
-    if (!screenshotDeleteResult) {
-      throw new Error(screenshotDeleteResult);
-    }
-    //Delete users TAGS in DB
-    const tagDeleteResult = await prisma.tag.deleteMany({
+    await prisma.tag.deleteMany({
       where: { userId: id },
     });
-
-    if (!tagDeleteResult) {
-      throw new Error(tagDeleteResult);
-    }
     //Delete files from STORAGE
     const { error: storageError } = await supabaseSERVICE.storage
       .from("screenshots")
