@@ -1,7 +1,7 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 4,
   "name": "Curatemap Extension",
-  "version": "1.4",
+  "version": "1.5",
   "description": "Takes a screenshot of the current tab",
   "permissions": ["activeTab", "scripting", "tabs", "storage"],
   "background": {
