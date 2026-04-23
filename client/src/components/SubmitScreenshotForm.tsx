@@ -48,10 +48,13 @@ function SubmitScreenshotForm({
 
   return (
     <form onSubmit={handleSubmit}>
+      <p className="text-muted-foreground mb-1 text-xs font-medium tracking-[0.16em] uppercase">
+        Add to Collection
+      </p>
       <TagSelect />
       <button
         type="submit"
-        className="rounded-md bg-black text-white cursor-pointer py-4 w-full mt-4"
+        className="mt-3 w-full cursor-pointer rounded-xl bg-primary py-3 font-medium text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
       >
         Save
       </button>
