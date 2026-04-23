@@ -55,15 +55,19 @@ function MainApplication({ user }: { user: User }) {
 
   return (
     <FormProvider screenshotResponse={screenshotCaptured} user={user}>
-      <div className="popup-width p-4">
-        <Header />
-        <main className="mt-4 min-h-[200px]">
-          {!screenshotUploaded ? (
-            <Form setScreenshotUploaded={setScreenshotUploaded} />
-          ) : (
-            <SuccessfullUpload />
-          )}
-        </main>
+      <div className="popup-width relative overflow-hidden bg-background p-4">
+        <div className="pointer-events-none absolute -top-20 -left-20 h-44 w-44 rounded-full bg-primary/10 blur-3xl" />
+        <div className="pointer-events-none absolute -right-16 -bottom-16 h-44 w-44 rounded-full bg-accent/15 blur-3xl" />
+        <div className="relative rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <Header />
+          <main className="mt-4 min-h-[220px]">
+            {!screenshotUploaded ? (
+              <Form setScreenshotUploaded={setScreenshotUploaded} />
+            ) : (
+              <SuccessfullUpload />
+            )}
+          </main>
+        </div>
       </div>
     </FormProvider>
   );
