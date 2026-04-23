@@ -17,9 +17,9 @@ function Form({ setScreenshotUploaded }: FormProps) {
       {formLoading ? (
         <Spinner />
       ) : (
-        <div>
+        <div className="space-y-4">
           <ImagePreview />
-          <h2 className="font-bold text-lg mb-4">
+          <h2 className="text-foreground text-lg font-semibold">
             {formData.siteName
               ? formData.siteName.charAt(0).toUpperCase() +
                 formData.siteName.slice(1)

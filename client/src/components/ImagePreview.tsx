@@ -4,11 +4,15 @@ export function ImagePreview() {
   const { formData } = useFormContext();
 
   return (
-    <div className=" overflow-hidden mb-2 shadow-md overflow-hidden rounded-md">
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
       {formData.image ? (
-        <img src={formData.image} alt="Captured screenshot" className="object-fill" />
+        <img
+          src={formData.image}
+          alt="Captured screenshot"
+          className="max-h-[170px] w-full object-cover"
+        />
       ) : (
-        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+        <div className="text-muted-foreground bg-muted flex h-[170px] w-full items-center justify-center text-sm">
           No Screenshot Available
         </div>
       )}
