@@ -3,7 +3,12 @@ import NavButton from "./NavButton";
 function Header() {
   return (
     <header className="flex items-center justify-between">
-      <h1 className="font-bold text-lg">Curatemap</h1>
+      <div>
+        <p className="text-muted-foreground text-xs font-medium tracking-[0.2em] uppercase">
+          Designspo
+        </p>
+        <h1 className="text-foreground text-lg font-semibold">Quick Capture</h1>
+      </div>
 
       <NavButton />
     </header>

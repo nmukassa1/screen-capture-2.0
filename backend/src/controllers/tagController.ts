@@ -28,7 +28,7 @@ export const getTagByName = async (req: Request, res: Response) => {
   try {
     const tag = await tagService.getTagByName(
       req.body.user.id,
-      req.params.tagName
+      req.params.tagName,
     );
     res.json(tag);
   } catch (error) {
@@ -61,9 +61,11 @@ export const createTag = async (req: Request, res: Response) => {
     }
 
     const tag = await tagService.createTag(userId, name);
+    console.log("Tag created:", tag);
     res.status(201).json(tag);
     // res.status(201).json({ message: 'Tag created' });
   } catch (error) {
+    console.error("Error creating tag:", error);
     res.status(500).json({ error: "Failed to create tag" });
   }
 };
@@ -95,7 +97,7 @@ export const deleteTagByName = async (req: Request, res: Response) => {
   } catch (err) {
     console.error(
       `Error deleting tag: ${tagName} for user ${userId}:`,
-      (err as Error).message
+      (err as Error).message,
     );
     res.status(500).json({ error: "Failed to delete tag", message: err });
   }

@@ -57,7 +57,7 @@ export function CreateTagForm() {
         <input
           type="text"
           placeholder="Create Tag (optional)"
-          className="border-2 rounded-md px-4 grow"
+          className="placeholder:text-muted-foreground focus-visible:ring-ring/50 grow rounded-xl border border-border bg-card px-4 py-2.5 text-sm shadow-sm outline-none focus-visible:ring-[3px]"
           name="name"
           value={formData.name}
           onChange={(e) =>
@@ -66,8 +66,10 @@ export function CreateTagForm() {
         />
         <button
           type="submit"
-          className={`w-[30px] h-[30px] rounded-full border-2 border-black  grid place-content-center ${
-            !formData.name ? "cursor-not-allowed" : "cursor-pointer"
+          className={`grid h-9 w-9 place-content-center rounded-full bg-primary text-primary-foreground shadow-sm transition-all duration-200 hover:scale-105 ${
+            !formData.name
+              ? "cursor-not-allowed opacity-40"
+              : "cursor-pointer hover:opacity-90"
           }`}
           disabled={!formData.name}
         >
@@ -75,8 +77,8 @@ export function CreateTagForm() {
         </button>
       </form>
       {isLoading && (
-        <div className="w-fit spinner mx-auto">
-          <LoaderIcon />
+        <div className="spinner text-muted-foreground mx-auto w-fit pt-2">
+          <LoaderIcon size={18} />
         </div>
       )}
     </>

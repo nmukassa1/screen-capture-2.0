@@ -12,16 +12,15 @@ export function TagSelect() {
 
   if (isLoading) {
     return (
-      <div className="w-fit spinner mx-auto">
-        <LoaderIcon />
+      <div className="spinner text-muted-foreground mx-auto w-fit py-2">
+        <LoaderIcon size={18} />
       </div>
     );
   }
 
   if (tags.length > 0) {
     return (
-      <div className="flex flex-col gap-y-[24px] py-4 mt-4 overflow-x-auto">
-        {/* Row 1 */}
+      <div className="mt-2 space-y-3 overflow-x-auto py-3">
         <div className="flex gap-x-2">
           {tags
             .filter((_, index) => index % 2 === 0)
@@ -35,7 +34,6 @@ export function TagSelect() {
             ))}
         </div>
 
-        {/* Row 2 */}
         <div className="flex gap-x-2">
           {tags
             .filter((_, index) => index % 2 !== 0)
@@ -53,9 +51,9 @@ export function TagSelect() {
   }
 
   return (
-    <div className="flex flex-col gap-y-[24px] py-4 mt-4 overflow-x-auto">
+    <div className="mt-2 flex flex-col gap-y-2 overflow-x-auto py-3">
       <div className="flex gap-x-2">
-        <p className="text-center text-gray-500">No tags created</p>
+        <p className="text-muted-foreground text-sm">No tags created yet</p>
       </div>
     </div>
   );
@@ -92,8 +90,8 @@ function TagItem({
       />
       <label
         htmlFor={tag.id.toString()}
-        className="cursor-pointer px-4 py-2 rounded-md border border-black text-black
-                 hover:bg-black hover:text-white peer-checked:bg-black peer-checked:text-white transition"
+        className="cursor-pointer rounded-full border border-border bg-secondary px-3 py-1.5 text-sm text-secondary-foreground transition
+                 hover:bg-accent hover:text-accent-foreground peer-checked:border-primary/40 peer-checked:bg-primary/15 peer-checked:text-foreground"
       >
         {tag.name}
       </label>
