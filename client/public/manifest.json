@@ -1,5 +1,5 @@
 {
-  "manifest_version": 4,
+  "manifest_version": 3,
   "name": "Designspo Extension",
   "version": "1.5",
   "description": "Takes a screenshot of the current tab",
