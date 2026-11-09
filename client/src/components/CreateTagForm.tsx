@@ -11,6 +11,7 @@ import { useTagsContext } from "../context/TagsContext";
 import { Tag } from "../types";
 import { useUserContext } from "../context/UserContext";
 import { LoaderIcon } from "lucide-react";
+import { sendToBackground } from "../messages";
 
 export function CreateTagForm() {
   const { setTags } = useTagsContext();
@@ -26,25 +27,18 @@ export function CreateTagForm() {
     setIsLoading(true);
 
     try {
-      chrome.runtime.sendMessage(
-        {
-          action: "create_tag",
-          payload: formData,
-        },
-        (response) => {
-          if (chrome.runtime.lastError) {
-            throw new Error(chrome.runtime.lastError.message);
-          }
+      const response = await sendToBackground<Tag>({
+        action: "create_tag",
+        payload: formData,
+      });
 
-          if (!response.success) {
-            throw new Error(response.error || "Tag creation failed");
-          }
+      if (!response.success) {
+        throw new Error(response.error || "Tag creation failed");
+      }
 
-          console.log("Tag created:", response.tag);
-          setTags((prev: Tag[]) => [...prev, response.tag]);
-          setFormData({ name: "", userId: user?.id || "1" });
-        }
-      );
+      const tag = response.data;
+      setTags((prev: Tag[]) => [...prev, tag]);
+      setFormData({ name: "", userId: user?.id || "1" });
     } catch (error) {
       console.error("Error:", error);
     } finally {

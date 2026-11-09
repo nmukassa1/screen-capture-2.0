@@ -1,5 +1,6 @@
 import { useFormContext } from "../context/FormContext";
 import { TagSelect } from "./TagSelect";
+import { sendToBackground } from "../messages";
 
 interface SubmitScreenshotFormProps {
   setScreenshotUploaded: (uploaded: boolean) => void;
@@ -14,36 +15,21 @@ function SubmitScreenshotForm({
     e.preventDefault();
     setFormLoading(true);
 
-    chrome.runtime.sendMessage(
-      { action: "upload_screenshot", data: formData },
-      async (response) => {
-        if (chrome.runtime.lastError) {
-          console.error(
-            "Error sending message:",
-            chrome.runtime.lastError.message
-          );
-          setFormLoading(false);
-          return;
-        }
-        if (response && response.success) {
-          const [tab] = await chrome.tabs.query({
-            active: true,
-            lastFocusedWindow: true,
-          });
-          chrome.scripting.executeScript({
-            args: [response],
-            target: { tabId: tab.id! },
-            func: (response) => {
-              console.log("Form response:", response);
-            },
-          });
-          setScreenshotUploaded(true);
-        } else {
-          console.error("Error:", response);
-        }
-        setFormLoading(false);
+    try {
+      const response = await sendToBackground({
+        action: "upload_screenshot",
+        data: formData,
+      });
+      if (response.success) {
+        setScreenshotUploaded(true);
+      } else {
+        console.error("Upload failed:", response.error);
       }
-    );
+    } catch (error) {
+      console.error("Error sending message:", error);
+    } finally {
+      setFormLoading(false);
+    }
   }
 
   return (

@@ -1,15 +1,29 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
+import { sendToBackground, type AuthStateChangedMessage } from "../messages";
 
 interface UserContextType {
-  user: User | null;
+  /** `undefined` while the session is still being loaded from the background worker. */
+  user: User | null | undefined;
   setUser: (user: User | null) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null | undefined>(undefined);
+
+  useEffect(() => {
+    sendToBackground<User | null>({ action: "get_user" })
+      .then((response) => setUser(response.success ? response.data : null))
+      .catch(() => setUser(null));
+
+    const onMessage = (message: AuthStateChangedMessage) => {
+      if (message?.action === "auth_state_changed") setUser(message.user);
+    };
+    chrome.runtime.onMessage.addListener(onMessage);
+    return () => chrome.runtime.onMessage.removeListener(onMessage);
+  }, []);
 
   return (
     <UserContext.Provider value={{ user, setUser }}>
