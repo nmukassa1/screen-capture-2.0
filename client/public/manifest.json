@@ -27,7 +27,7 @@
   },
   "host_permissions": [
     "https://*.supabase.co/*",
-    "https://designspo-backend.onrender.com/*",
+    "https://screen-capture-2-0.vercel.app/*",
     "http://localhost:4000/*"
   ]
 }

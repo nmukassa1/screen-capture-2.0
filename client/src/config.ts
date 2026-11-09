@@ -1,7 +1,7 @@
 const trimSlash = (url: string) => url.replace(/\/+$/, "");
 
 export const BACKEND_URL = trimSlash(
-  import.meta.env.VITE_BACKEND_URL || "https://designspo-backend.onrender.com",
+  import.meta.env.VITE_BACKEND_URL || "https://screen-capture-2-0.vercel.app",
 );
 
 export const WEB_URL = trimSlash(
