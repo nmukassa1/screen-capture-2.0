@@ -10,7 +10,6 @@ import "./types/express-augment";
 
 import express, { Application } from "express";
 import cors from "cors";
-import fs from "fs-extra";
 import tagRoutes from "./routes/tagRoutes";
 import screenshotRoutes from "./routes/screenshotRoutes";
 import authRoutes from "./routes/authRoutes";
@@ -21,10 +20,6 @@ import { buildCorsOptions } from "./corsOptions";
 const PORT = parseInt(process.env.SERVER_PORT || "4000", 10);
 
 const app: Application = express();
-
-// Ensure upload directory exists
-const UPLOAD_DIR = path.join(__dirname, "uploads");
-fs.ensureDirSync(UPLOAD_DIR);
 
 // Middleware
 app.use(express.json({ limit: "10mb" }));
@@ -41,6 +36,11 @@ app.use("/tags", tagRoutes);
 app.use("/screenshots", screenshotRoutes);
 app.use("/auth", authRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// On Vercel the exported app is invoked as a function; listening is only for local/long-running hosts.
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+export default app;
