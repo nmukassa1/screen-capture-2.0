@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import {
   HashRouter as Router,
   Routes,
@@ -7,37 +6,26 @@ import {
 } from "react-router-dom";
 import MainApplication from "./page/MainApplication";
 import Login from "./page/Login";
+import Spinner from "./components/Spinner";
 import { useUserContext } from "./context/UserContext";
-// import { api } from "./api/api";
 
 function App() {
-  const { user, setUser } = useUserContext();
+  const { user } = useUserContext();
 
-  useEffect(() => {
-    async function restoreSession() {
-      chrome.runtime.sendMessage(
-        { action: "restore-session" },
-        async (response) => {
-          if (response && response.user) {
-            setUser(response.user);
-            return;
-          }
-        }
-      );
-      // const { data } = await api.get("/auth/restore-session");
-      // setUser(data.user);
-    }
-    restoreSession();
-  }, []);
+  if (user === undefined) {
+    return (
+      <div className="popup-width bg-background p-4">
+        <Spinner />
+      </div>
+    );
+  }
 
   return (
     <Router>
       <Routes>
         <Route
           path="/login"
-          element={
-            user ? <Navigate to="/mainApp" /> : <Login setUser={setUser} />
-          }
+          element={user ? <Navigate to="/mainApp" /> : <Login />}
         />
         <Route
           path="/mainApp"

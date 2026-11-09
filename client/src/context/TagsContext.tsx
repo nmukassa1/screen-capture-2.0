@@ -6,8 +6,8 @@ import {
   useState,
 } from "react";
 import { Tag } from "../types";
-import { api } from "../api/api";
 import { useUserContext } from "./UserContext";
+import { sendToBackground } from "../messages";
 
 interface TagsContextType {
   tags: Tag[];
@@ -21,34 +21,24 @@ export const TagsProvider = ({ children }: { children: ReactNode }) => {
   const [tags, setTags] = useState<Tag[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { user } = useUserContext();
-  const getSession = async () => {
-    const result = await chrome.storage.local.get("session");
-    chrome.runtime.sendMessage({
-      action: "logSession",
-      session: result.session,
-    });
-    return result.session; // Access the "session" value
-  };
+  const userId = user?.id;
 
   useEffect(() => {
-    async function getTags() {
-      const session = await getSession();
-      if (!session) {
-        setIsLoading(false);
-        return;
-      }
-      const response = await api.get("/tags/" + user?.id, {
-        headers: {
-          Authorization: `Bearer ${session}`,
-        },
-      });
-      console.log("Tags:", response.data);
-      setTags(response.data);
+    if (!userId) {
       setIsLoading(false);
+      return;
     }
 
-    getTags();
-  }, []);
+    sendToBackground<Tag[]>({ action: "get_tags", userId })
+      .then((response) => {
+        if (response.success) {
+          setTags(response.data);
+        } else {
+          console.error("Failed to load tags:", response.error);
+        }
+      })
+      .finally(() => setIsLoading(false));
+  }, [userId]);
 
   return (
     <tagContext.Provider value={{ tags, setTags, isLoading }}>
