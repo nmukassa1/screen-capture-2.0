@@ -1,28 +1,23 @@
 import { useNavigate } from "react-router-dom";
-// import { supabase } from "../supabase";
 import { Menu, LogOut, LayoutDashboard, UserRound } from "lucide-react";
 import { useState } from "react";
 import { useUserContext } from "../context/UserContext";
-// import { api } from "../api/api";
+import { sendToBackground } from "../messages";
+import { WEB_URL } from "../config";
 
 function NavButton() {
   const navigate = useNavigate();
   const { setUser } = useUserContext();
 
   const handleLogout = async () => {
-    chrome.runtime.sendMessage({ action: "logout" }, async (response) => {
-      if (chrome.runtime.lastError) {
-        console.error(
-          "Error sending message:",
-          chrome.runtime.lastError.message
-        );
-        return;
-      }
-      if (response && response.success) {
-        setUser(null);
-        navigate("/login");
-      }
-    });
+    try {
+      await sendToBackground({ action: "logout" });
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
+    // The background worker clears its stored session even if revoking fails.
+    setUser(null);
+    navigate("/login");
   };
 
   const [displayNav, setDisplayNav] = useState<boolean>(false);
@@ -55,7 +50,7 @@ function NavButton() {
       >
         <button
           onClick={() =>
-            redirectTo("https://designspo-webpage.vercel.app/dashboard/")
+            redirectTo(`${WEB_URL}/dashboard/`)
           }
           className="text-foreground hover:bg-accent hover:text-accent-foreground flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg p-2 text-sm transition-colors"
         >
@@ -65,7 +60,7 @@ function NavButton() {
         <hr className="border-border" />
         <button
           onClick={() =>
-            redirectTo("https://designspo-webpage.vercel.app/dashboard/profile")
+            redirectTo(`${WEB_URL}/dashboard/profile`)
           }
           className="text-foreground hover:bg-accent hover:text-accent-foreground flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg p-2 text-sm transition-colors"
         >

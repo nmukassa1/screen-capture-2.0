@@ -1,8 +1,9 @@
 {
-  "manifest_version": 4,
+  "manifest_version": 3,
   "name": "Designspo Extension",
   "version": "1.5",
   "description": "Takes a screenshot of the current tab",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApwZlnyrsSn9vwFCQyLwPYBtmnFO+d7zZnKy4fDzi2VqG8yS5lENofDbg1YpD9x8iKzil+cLbgDYUQshVjJAbZ6isrIs2yYmV+Bcv7wrViBslYJzMaxQLa8k2y2J4Jp+eo/HvF2L9tFqBwIem23cYHOTvFHgTHNoMsYjX3y1rgwC/WnIc1qE8ap+p8GJXDz7tu9tSnPE6WUUO88wAAFd7P3OIai69WZCK/AawcqMGXQOxONcvbf5E5EvenwzVt8P9Rt4Sn/UDuYRmOrxgEe3dBsMNXjX6YaRFZXtjBCFkAUCPUoIoAnkx5eJZxanFO93U8G0bylGRCDa/9R2yVeV8kwIDAQAB",
   "permissions": ["activeTab", "scripting", "tabs", "storage"],
   "background": {
     "service_worker": "background.js",
@@ -16,6 +17,13 @@
   },
   "action": {
     "default_popup": "index.html"
+  },
+  "externally_connectable": {
+    "matches": [
+      "https://designspo-webpage.vercel.app/*",
+      "https://app.designspo.com/*",
+      "http://localhost/*"
+    ]
   },
   "host_permissions": [
     "https://*.supabase.co/*",

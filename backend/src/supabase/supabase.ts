@@ -13,15 +13,27 @@ const supabaseKey =
   process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || "";
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Server clients are shared across requests, so they must never hold a session.
+const serverAuthOptions = {
+  persistSession: false,
+  autoRefreshToken: false,
+  detectSessionInUrl: false,
+};
+
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: serverAuthOptions,
+});
 
 /** Only set when `SUPABASE_SERVICE_ROLE_KEY` is present. Used for admin APIs (e.g. delete user). */
 export const supabaseSERVICE = supabaseServiceRoleKey
-  ? createClient(supabaseUrl, supabaseServiceRoleKey)
+  ? createClient(supabaseUrl, supabaseServiceRoleKey, {
+      auth: serverAuthOptions,
+    })
   : null;
 
 export function createUserClient(sessionKey: string) {
   return createClient(supabaseUrl, supabaseKey, {
+    auth: serverAuthOptions,
     global: {
       headers: {
         Authorization: `Bearer ${sessionKey}`,
